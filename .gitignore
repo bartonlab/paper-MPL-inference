@@ -1,0 +1,17 @@
+# Local files
+__pycache__
+.ipynb_checkpoints
+CLEAR/__pycache__/
+
+# Uncompressed input/output
+CLEAR/data/*.dat
+CLEAR/data/*.df
+CLEAR/out/*.dat
+CLEAR/out/*.df
+EandR/data/*.dat
+EandR/out/*.dat
+
+# Job files
+MPL/jobs/
+CLEAR/jobs/
+EandR/jobs/
