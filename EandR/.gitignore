@@ -1,0 +1,9 @@
+*.swp
+*.swo
+__pycache__
+*.pyc
+threelocus/*.so
+threelocus/build
+threelocus/*.o
+build/
+pyexp.so

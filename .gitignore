@@ -4,6 +4,7 @@ __pycache__
 CLEAR/__pycache__/
 MPL/src/.dirstamp
 MPL/src/.deps/
+MPL/src/*.o
 
 # Uncompressed input/output
 CLEAR/data/*.dat
