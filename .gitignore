@@ -2,6 +2,8 @@
 __pycache__
 .ipynb_checkpoints
 CLEAR/__pycache__/
+MPL/src/.dirstamp
+MPL/src/.deps/
 
 # Uncompressed input/output
 CLEAR/data/*.dat
@@ -12,6 +14,7 @@ EandR/data/*.dat
 EandR/out/*.dat
 
 # Job files
+wfsim/jobs/
 MPL/jobs/
 CLEAR/jobs/
 EandR/jobs/
