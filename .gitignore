@@ -1,12 +1,13 @@
 # Local files
 __pycache__
 .ipynb_checkpoints
+data/HIV/seq-times.dat
+drafts/
+old/
 src/MPL/.dirstamp
 src/MPL/.deps/
 src/MPL/*.o
-old/
 VRC26/
-data/HIV/seq-times.dat
 supplemental-analysis.ipynb
 supplemental-figures.ipynb
 
