@@ -1,6 +1,0 @@
-The mathematical equations represented by the files in in include/
-are obtained using the Maple script `scripts/3l.mpl'. The script
-`scripts/run.py' will generate a shell file which can be used to
-re-create these files. The files have been generated for you, so under
-normal circumstances you should not need to run this.
-

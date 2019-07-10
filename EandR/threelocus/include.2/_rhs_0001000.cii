@@ -1,2 +1,0 @@
-t1 = Edelta(t, p, 0, 0, 0, 0, 0, 0, 0);
-ret = t1 * dtLS;

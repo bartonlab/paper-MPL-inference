@@ -1,4 +1,0 @@
-t1 = Edelta(t, p, 0, 0, 0, 0, 0, 0, 0);
-t4 = Edelta(t, p, 0, 0, 1, 0, 0, 0, 0);
-t6 = Edelta(t, p, 0, 0, 0, 0, 0, 1, 0);
-ret = t1 * dtR * dtRS + t4 * dtRS + t6 * dtR;
