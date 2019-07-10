@@ -1,21 +1,12 @@
 # Local files
 __pycache__
 .ipynb_checkpoints
-CLEAR/__pycache__/
-MPL/src/.dirstamp
-MPL/src/.deps/
-MPL/src/*.o
+src/MPL/.dirstamp
+src/MPL/.deps/
+src/MPL/*.o
+old/
+VRC26/
+data/HIV/seq-times.dat
+supplemental-analysis.ipynb
+supplemental-figures.ipynb
 
-# Uncompressed input/output
-CLEAR/data/*.dat
-CLEAR/data/*.df
-CLEAR/out/*.dat
-CLEAR/out/*.df
-EandR/data/*.dat
-EandR/out/*.dat
-
-# Job files
-wfsim/jobs/
-MPL/jobs/
-CLEAR/jobs/
-EandR/jobs/
