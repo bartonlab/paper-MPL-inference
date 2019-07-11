@@ -8,6 +8,11 @@ src/MPL/.dirstamp
 src/MPL/.deps/
 src/MPL/*.o
 VRC26/
+src-MPL-HIV.tar.gz
+src-wfsim-data.tar.gz
 supplemental-analysis.ipynb
 supplemental-figures.ipynb
 
+# Directories with large files
+src/MPL/HIV
+src/wfsim/data
