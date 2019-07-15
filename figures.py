@@ -1,7 +1,6 @@
 """
 This Python file contains code for generating plots in:
-    Disentangling effects of genetic linkage on estimates of selection
-    for tens of thousands of genetic variants
+    Resolving genetic linkage reveals patterns of selection in HIV-1 evolution
     bioRxiv
     Muhammad S. Sohail
     Raymond H. Y. Louie
