@@ -1,11 +1,13 @@
 % This file specifies directory paths to Data, Analysis, ABC, ApproxWF
 % the syntax is /dir1/dir2/dir3/ 
 % for windows based system, the code will automatically reformat the path
-% 
-% Note: dirNameABC for Linux based system /.../WFABC_v1.1/binaries/Linux/
-%       dirNameABC for Windows based system C:\...\WFABC_v1.1\binaries\Windows\
+%
+% Please fill in the '/.../' with the actual path of your installation.
+%
+% Note: dirNameABC for Linux based system /.../paper-MPL-inference-master/src/external/WFABC_v1.1/binaries/Linux/
+%       dirNameABC for Windows based system C:\...\paper-MPL-inference-master\src\external\WFABC_v1.1\binaries\Windows\
 % -------------------------------------------------------------------------
-dirNameData=../wfsim/data/
-dirAnalysisName=.
-dirNameABC=../external/WFABC_v1.1/WFABC_v1.1/binaries/Linux/
-dirNameApproxWF=../external/Approxwf/
+dirNameData=/local/staff/ee/mssohail/Matlab Codes/paper-MPL-inference-master/src/wfsim/data/
+dirNameAnalysis=/local/staff/ee/mssohail/Matlab Codes/paper-MPL-inference-master/src/Matlab/Analysis/
+dirNameABC=/local/staff/ee/mssohail/Matlab Codes/paper-MPL-inference-master/src/external/WFABC_v1.1/binaries/Linux/
+dirNameApproxWF=/local/staff/ee/mssohail/Matlab Codes/paper-MPL-inference-master/src/external/Approxwf/

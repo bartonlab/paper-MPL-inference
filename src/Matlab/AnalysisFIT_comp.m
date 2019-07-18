@@ -1,24 +1,52 @@
 %% Analysis of GT data using Feder's FIT method
 %
 %%
+% Run the script in MATLAB (press F5). The code will prompt the user for
+% any required action. The output of this code is estimates of selection
+% coefficients stored in the file:
+% FIT_medium_simple_old_collected_extended_Tend1000.csv 
 
 % this code :
 %      1. loads data (in .mat or .dat format)
 %      2. calculates 1-point frequencies
 %      3. Classify sites using Feder's method and estimate ML estimate and save
-% Last updated 26-Nov 2017
+% Written 20-Nov 2017
 % Author: M Saqib Sohail
 
+% Last updated: 16-July 2019
+%               -automated assignment of various variable
+%               -estimates saved to .csv file
 
-
-% 
+%% 
 clc
 clear all
 close all
 
 saveFile = 1%1;
-thisSet = 'medium_simple';%'medium_complex';
-numItr = 1%90;
+
+repeatInput = 1;
+disp('-------------------------------------------------------------------')
+disp(' ')
+disp(' This code will run the FIT method on ground truth data. ')
+disp(' ')
+disp('Dataset to analyze: (1) Medium simple, (2) Medium complex');
+prompt = ' ';
+while(repeatInput == 1)
+    str = input(prompt,'s');
+    if(length(str) == 1 && str == '1')
+        repeatInput = 0;
+        thisSet = 'medium_simple';
+    elseif(length(str) == 1 && str == '2')
+        repeatInput = 0;
+        thisSet = 'medium_complex';
+    else
+        disp('Unexpected input, please pren ''1'' or ''2''. Dataset to analyze: (1) Medium simple, (2) Medium complex');
+        prompt = ' ';
+    end
+end
+
+
+numItr = 100;
 useSameT = 0; % flag that controls if 
               %     1: usable T will be loaded from data
               %     0: supplied by user in variable Tused
@@ -53,9 +81,9 @@ for thisItr = 1:numItr
         pause
     end
         
+    makeDirNames();
     [dirNameData, dirNameAnalysis] = loadDirNames(fileNameContainingDirPath);
     dirNameRandPermFiles = [dirNameData(1:end-5) chosenSlash 'RandPermFiles' chosenSlash];
-    dirNameData = [dirNameData thisSet chosenSlash];
     dirNameAnalysis = [dirNameAnalysis thisSet chosenSlash];
     dirNameAnalysisFeder = [dirNameAnalysis 'Feder' chosenSlash];
 
@@ -73,6 +101,35 @@ for thisItr = 1:numItr
     end
 
     warning off
+    % check if output dat file already exists
+    if(thisItr == 1)
+        dirNameSaveCSVFile = [];
+        if(strcmp(thisSet, 'medium_simple'))
+            fileNamePaperDataCompFIT = ['FIT_medium_simple_old_collected_extended_Tend' num2str(T) '.csv'];
+        elseif(strcmp(thisSet, 'medium_complex'))
+            fileNamePaperDataCompFIT = ['FIT_medium_complex_old_collected_extended_Tend' num2str(T) '.csv'];
+        end
+
+        if(exist([dirNameSaveCSVFile fileNamePaperDataCompFIT], 'file') == 2)
+            disp(['The following file already exists ' dirNameSaveCSVFile fileNamePaperDataCompFIT])
+            prompt = 'Overwrite? (y) yes, (n) no. Your choice: ';
+            repeatInput2 = 1;
+            while(repeatInput2 == 1)
+                str = input(prompt,'s');
+                if(length(str) == 1 && str == 'y')
+                    repeatInput2 = 0;
+
+                elseif(length(str) == 1 && str == 'n')
+                    repeatInput2 = 0;
+                    disp('FIT not run. Rename existing file and run this code again.')
+                    break
+                else
+                    disp('Unexpected input, please pren ''y'' or ''n''. Overwrite? (y) yes, (n) no. Your choice: ');
+                    prompt = ' ';
+                end
+            end        
+        end
+    end
 %% 2. calculates 1-point frequencies
 %--------------------------------------------------------------------------
     if(loadDataOption == 1)
@@ -201,9 +258,47 @@ for thisItr = 1:numItr
     end
     
     timeWholeCodeFeder(thisItr) = toc;
-    timeWholeCodeFeder(thisItr)
+    
     if(saveFile == 1)
         disp('Saving file...')
         save([dirNameAnalysisFeder fileNameSave])
     end
+    
+    sigmaEstOutFeder = t_FI;
+    posOnlyItrTemp = perSiteSelction == max(perSiteSelction);
+    negOnlyItrTemp = perSiteSelction == min(perSiteSelction);
+    [~,~,~, aucFederItrTemp(1)] = perfcurve(double(posOnlyItrTemp), sigmaEstOutFeder, 1);
+    [~,~,~, aucFederItrTemp(2)] = perfcurve(double(~negOnlyItrTemp), sigmaEstOutFeder, 1);
+    aucFederItr(thisItr,:) = aucFederItrTemp;
+
+    if(thisItr == 1)
+        str = ' ';
+        str = [str ',trajectory,method,t0,T,ns,deltat,runtime'];
+        for l = 1:Lin
+            str = [str ',s' num2str(l-1)];
+        end
+        str = [str ',AUROC_ben,AUROC_del'];
+        for l = 1:Lin
+            str = [str ',ds' num2str(l-1)];
+        end
+        str = [str '\n'];
+        fid = fopen(fileNamePaperDataCompFIT,'wt');
+        fprintf(fid, str);
+        fclose(fid);
+    end
+
+    inpDataFIT = [num2str(thisItr-1) ',' num2str(thisItr-1) ',FIT,' num2str(Tstart) ',' num2str(T) ',' num2str(ng) ',' num2str(dT) ',' num2str(timeWholeCodeFeder(thisItr))];
+    for l = 1:Lin
+        inpDataFIT = [inpDataFIT ',' num2str(sigmaEstOutFeder(l))];
+    end
+    inpDataFIT = [inpDataFIT ',' num2str(aucFederItrTemp(1)) ',' num2str(aucFederItrTemp(2))];
+    for l = 1:Lin
+        inpDataFIT = [inpDataFIT ',' num2str(perSiteSelction(l) - sigmaEstOutFeder(l))];
+    end
+    inpDataFIT = [inpDataFIT '\n'];
+    
+    fid = fopen(fileNamePaperDataCompFIT,'a');
+    fprintf(fid, inpDataFIT);
+    fclose(fid);
 end
+disp(['Output saved to ...' chosenSlash 'Matlab' chosenSlash  fileNamePaperDataCompFIT])
