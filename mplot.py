@@ -58,7 +58,7 @@ textcolor    = defcolor
 
 # paper
 fontfamily   = 'Arial'
-sizesublabel = 8
+sizesublabel = 8+1
 sizetext     = 6
 sizelabel    = 6
 sizetick     = 6
@@ -66,20 +66,22 @@ smallsizedot = 6.
 
 ## grant
 #fontfamily   = 'Arial'
-#sizesublabel = 10
-#sizetext     = 10
-#sizelabel    = 10
-#sizetick     = 10
+#sizesublabel = 12
+#sizetext     = 8
+#sizelabel    = 8
+#sizetick     = 8
 #smallsizedot = 6. * 2
 #sizeline     = 1
 
 ##slides/poster
 #fontfamily   = 'Avenir'
-#sizesublabel = 20
-#sizetext     = 20
-#sizelabel    = 20
-#sizetick     = 20
+#sizesublabel = 18
+#sizetext     = 18
+#sizelabel    = 18
+#sizetick     = 18
 #smallsizedot = 6. * 4
+#axwidth      = 1.5
+#sizeline     = 3.0
 
 def_labelprops = {
     'family' : fontfamily,

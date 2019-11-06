@@ -66,28 +66,35 @@ ONE_FIVE_COLUMN = cm2inch(11.4)
 DOUBLE_COLUMN   = cm2inch(17.4)
 
 GOLDR        = (1.0 + np.sqrt(5)) / 2.0
-FONTFAMILY   = 'Arial'  # paper style
+TICKLENGTH   = 3
+TICKPAD      = 3
+AXWIDTH      = 0.4
+
+# paper style
+FONTFAMILY   = 'Arial'
 SIZESUBLABEL = 8
 SIZELABEL    = 6
 SIZETICK     = 6
 SMALLSIZEDOT = 6.
 SIZELINE     = 0.6
-#FONTFAMILY   = 'Arial'  # grant style
-#SIZESUBLABEL = 10
-#SIZELABEL    = 10
-#SIZETICK     = 10
-#SMALLSIZEDOT = 6. * 2
-#SIZELINE     = 1
-#FONTFAMILY   = 'Avenir'  # slides style
+
+# grant style
+#FONTFAMILY   = 'Arial'
+#SIZESUBLABEL = 8
+#SIZELABEL    = 8
+#SIZETICK     = 8
+#SMALLSIZEDOT = 6. * 1.3
+#SIZELINE     = 0.6
+
+# slides style
+#FONTFAMILY   = 'Avenir'
 #SIZESUBLABEL = 20
 #SIZELABEL    = 20
 #SIZETICK     = 20
 #SMALLSIZEDOT = 6. * 7
 #SIZELINE     = 1.5
 #SLIDE_WIDTH  = 10.5
-TICKLENGTH   = 3
-TICKPAD      = 3
-AXWIDTH      = 0.4
+
 
 FIGPROPS = {
     'transparent' : True,
@@ -133,7 +140,7 @@ DEF_LABELPROPS = {
 
 DEF_SUBLABELPROPS = {
     'family'  : FONTFAMILY,
-    'size'    : SIZESUBLABEL,
+    'size'    : SIZESUBLABEL+1,
     'weight'  : 'bold',
     'ha'      : 'center',
     'va'      : 'center',
@@ -271,7 +278,7 @@ def plot_figure_example_mpl(**pdata):
     pprops['plotprops']['alpha'] = 1
     mp.plot(type='line', ax=ax_traj, x=xdat, y=ydat, colors=[C_DEL_LT for k in range(len(x))], **pprops)
     
-    ax_traj.text(box_traj['left']+dx, box_traj['top']+dy-0.01, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_traj.text(box_traj['left']+dx, box_traj['top']+dy-0.01, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## b -- individual beneficial/neutral/deleterious selection coefficients
 
@@ -318,7 +325,7 @@ def plot_figure_example_mpl(**pdata):
     mp.line(ax=ax_coef, x=[[coef_legend_x-0.21, coef_legend_x-0.09]], y=[[yy, yy]], colors=[BKCOLOR], plotprops=dict(lw=SIZELINE, ls=':'), **pprops)
     ax_coef.text(coef_legend_x, yy, 'True selection\ncoefficient', ha='left', va='center', **DEF_LABELPROPS)
 
-    ax_coef.text(box_coef['left']+dx, box_coef['top']+dy, 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_coef.text(box_coef['left']+dx, box_coef['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
 
 #    ## FORMATTING CHECK
@@ -349,6 +356,268 @@ def plot_figure_example_mpl(**pdata):
     plot.close(fig)
 
     print('Figure 1 done.')
+    
+    
+def plot_figure_performance(**pdata):
+    """
+    Comparisons versus existing methods of selection inference.
+    """
+    
+    # unpack data
+
+    test_sets = pdata['test_sets']
+    traj_file = pdata['traj_file']
+    t_ticks   = pdata['t_ticks']
+    n_ben     = pdata['n_ben']
+    n_neu     = pdata['n_neu']
+    n_del     = pdata['n_del']
+    x_ben     = pdata['x_ben']
+    y_ben     = pdata['y_ben']
+    x_del     = pdata['x_del']
+    y_del     = pdata['y_del']
+    x_err     = pdata['x_err']
+    y_err     = pdata['y_err']
+    x_t       = pdata['x_t']
+    y_t       = pdata['y_t']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = SINGLE_COLUMN
+    hshrink = 1.5
+    goldh   = 0.90 * w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+
+    box_top   = 0.96
+    box_left  = 0.23
+    box_right = 0.95
+    ddy      = 0.14 / hshrink
+    dy       = 0.12 / hshrink
+
+    box_traj = dict(left=box_left, right=box_right, bottom=box_top-(1*dy)-(0*ddy), top=box_top-(0*dy)-(0*ddy))
+    box_cben = dict(left=box_left, right=box_right, bottom=box_top-(2*dy)-(1*ddy), top=box_top-(1*dy)-(1*ddy))
+    box_cdel = dict(left=box_left, right=box_right, bottom=box_top-(3*dy)-(2*ddy), top=box_top-(2*dy)-(2*ddy))
+    box_rmse = dict(left=box_left, right=box_right, bottom=box_top-(4*dy)-(3*ddy), top=box_top-(3*dy)-(3*ddy))
+    box_time = dict(left=box_left, right=box_right, bottom=box_top-(5*dy)-(4*ddy), top=box_top-(4*dy)-(4*ddy))
+
+    wspace  = 0.10
+
+    gs_traj = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_traj)
+    gs_cben = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_cben)
+    gs_cdel = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_cdel)
+    gs_rmse = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_rmse)
+    gs_time = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_time)
+
+    ax_traj = [plot.subplot(gs_traj[0, i]) for i in range(len(test_sets))]
+    ax_cben = [plot.subplot(gs_cben[0, i]) for i in range(len(test_sets))]
+    ax_cdel = [plot.subplot(gs_cdel[0, i]) for i in range(len(test_sets))]
+    ax_rmse = [plot.subplot(gs_rmse[0, i]) for i in range(len(test_sets))]
+    ax_time = [plot.subplot(gs_time[0, i]) for i in range(len(test_sets))]
+
+    ## set colors and methods list
+
+    hc        = '#FFB511'
+    nc        = C_NEU_LT
+    methods   = ['MPL', 'FIT', 'LLS', 'CLEAR', 'EandR', 'ApproxWF', 'WFABC',  'IM']
+    labels    = ['MPL',   '1',   '2',     '3',     '4',        '5',     '6',   '7']
+    colorlist = [   hc,    nc,    nc,      nc,      nc,         nc,      nc,    nc]
+
+    hist_props = dict(lw=SIZELINE/2, width=0.75, align='center', orientation='vertical',
+                      edgecolor=[BKCOLOR for i in range(len(methods))])
+
+    ## a -- example trajectory
+
+    for k in range(len(test_sets)):
+        data  = np.loadtxt(traj_file[k])
+        times = np.unique(data.T[0])
+        x     = []
+        for i in range(len(times)):
+            idx    = data.T[0]==times[i]
+            t_data = data[idx].T[2:].T
+            t_num  = data[idx].T[1].T
+            t_freq = np.einsum('i,ij->j', t_num, t_data) / float(np.sum(t_num))
+            x.append(t_freq)
+        x = np.array(x).T
+
+        pprops = { 'xlim':      [np.min(times), np.max(times)],
+                   'ylim':      [0, 1.05],
+                   'xticks':    t_ticks[k],
+                   'yticks':    [],
+                   'xlabel':    'Generation',
+                   'plotprops': {'lw': SIZELINE, 'ls': '-', 'alpha': 0.6 },
+                   'axoffset':  0.1,
+                   'theme':     'open',
+                   'hide':      ['left','right'] }
+
+        if k==0:
+            pprops['yticks']      = [0, 1]
+            pprops['yminorticks'] = [0.25, 0.5, 0.75]
+            pprops['ylabel']      = 'Allele\nfrequency, ' + r'$x$'
+            pprops['hide']        = []
+
+        xdat = [times for i in range(n_ben[k])]
+        ydat = [i for i in x[:n_ben[k]]]
+        pprops['plotprops']['alpha'] = 1
+        mp.line(ax=ax_traj[k], x=xdat, y=ydat, colors=[C_BEN_LT for i in range(len(x))], **pprops)
+
+        xdat = [times for i in range(n_neu[k])]
+        ydat = [i for i in x[n_ben[k]:n_ben[k]+n_neu[k]]]
+        pprops['plotprops']['alpha'] = 0.4
+        mp.line(ax=ax_traj[k], x=xdat, y=ydat, colors=[C_NEU for i in range(len(x))], **pprops)
+
+        xdat = [times for i in range(n_del[k])]
+        ydat = [i for i in x[n_ben[k]+n_neu[k]:]]
+        pprops['plotprops']['alpha'] = 1
+        mp.plot(type='line', ax=ax_traj[k], x=xdat, y=ydat, colors=[C_DEL_LT for i in range(len(x))], **pprops)
+
+    ## b -- classification of beneficial mutants
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.6, len(x_ben[k])-0.6
+        ymin, ymax =  0.5, 1.0
+
+        pprops = { 'colors':      [colorlist],
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      x_ben[k],
+                   'xticklabels': labels,
+                   'yticks':      [],
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks'] = [0.5, 1.0]
+            pprops['yminorticks'] = [0.6, 0.7, 0.8, 0.9]
+            pprops['ylabel'] = 'Classification of\nbeneficial alleles\n(AUROC)'
+            pprops['hide']   = []
+        
+        mp.plot(type='bar', ax=ax_cben[k], x=[x_ben[k]], y=[y_ben[k]], plotprops=hist_props, **pprops)
+
+    ## c -- classification of deleterious mutants
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.6, len(x_err[k])-0.6
+        ymin, ymax =  0.5, 1.0
+
+        pprops = { 'colors':      [colorlist],
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      x_del[k],
+                   'xticklabels': labels,
+                   'yticks':      [],
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks'] = [0.5, 1.0]
+            pprops['yminorticks'] = [0.6, 0.7, 0.8, 0.9]
+            pprops['ylabel'] = 'Classification of\ndeleterious alleles\n(AUROC)'
+            pprops['hide']   = []
+        
+        mp.plot(type='bar', ax=ax_cdel[k], x=[x_del[k]], y=[y_del[k]], plotprops=hist_props, **pprops)
+
+    ## d - NRMSE
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.6, len(x_err[k])-0.6
+        ymin, ymax =  0., 3.
+        
+        print('%s\tNRMSE between %.2f and %.2f' % (test_sets[k], np.min(y_err[k]), np.max(y_err[k])))
+
+        pprops = { 'colors':      [colorlist],
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      x_err[k],
+                   'xticklabels': labels,
+                   'yticks':      [],
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks']      = [0, 1, 2, 3]
+            pprops['ylabel']      = 'Error on inferred\nselection coefficients\n(NRMSE)'
+            pprops['hide']        = []
+        
+        mp.plot(type='bar', ax=ax_rmse[k], x=[x_err[k]], y=[y_err[k]], plotprops=hist_props, **pprops)
+
+    ## e - run time
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.6, len(x_t[k])-0.6
+        ymin, ymax = -3, 6
+        
+        print('%s\ttime between %.2f and %.2f' % (test_sets[k], np.min(y_t[k]), np.max(y_t[k])))
+
+        pprops = { 'colors':      [colorlist],
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      x_t[k],
+                   'xticklabels': labels,
+                   'yticks':      [],
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks']      = [-3, 0, 3, 6]
+            pprops['ylabel']      = 'Run time\n' + '(log' +r'$_{10}$' '(seconds))'
+            pprops['hide']        = []
+        
+        mp.plot(type='bar', ax=ax_time[k], x=[x_t[k]], y=[y_t[k]], plotprops=hist_props, **pprops)
+
+        ax_time[k].text(box_left + (1.04*k+0.5)*(box_right - box_left)/len(test_sets), box_traj['top']+0.02,
+                        test_sets[k].split('_')[1].capitalize(),
+                        ha='center', va='center', transform=fig.transFigure, clip_on=False, **DEF_LABELPROPS)
+
+    # labels and legend
+
+    labelx = 0.04
+    ax_traj[0].text(labelx, box_traj['top'] + 0.01, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_cben[0].text(labelx, box_cben['top'] + 0.02, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_cdel[0].text(labelx, box_cdel['top'] + 0.02, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_rmse[0].text(labelx, box_rmse['top'] + 0.02, 'd'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_time[0].text(labelx, box_time['top'] + 0.02, 'e'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    invt = ax_traj[0].transData.inverted()
+    xy1  = invt.transform((  0, 0))
+    xy2  = invt.transform((7.5, 9))
+    xy3  = invt.transform((3.0, 9))
+
+    legend_dx1 = xy1[0]-xy2[0]
+    legend_dx2 = xy1[0]-xy3[0]
+    legend_dy  = xy1[1]-xy2[1]
+
+    #legend_x  =  700
+    legend_l  =  3
+    legend_x  =  25
+    legend_d  = -10
+    legend_y  = -10.5
+    legend_dx =  175
+    legend_t  = ['Beneficial', 'Neutral', 'Deleterious']
+    legend_c  = [   C_BEN,    C_NEU,    C_DEL]
+    legend_cl = [C_BEN_LT, C_NEU_LT, C_DEL_LT]
+    plotprops = DEF_ERRORPROPS.copy()
+    plotprops['clip_on'] = False
+    for k in range(len(legend_t)):
+        mp.error(ax=ax_traj[0], x=[[legend_x + legend_d + (k//legend_l * legend_dx)]], y=[[legend_y + (k%legend_l * legend_dy)]],
+                 edgecolor=[legend_c[k]], facecolor=[legend_cl[k]], plotprops=plotprops, **pprops)
+        ax_traj[0].text(legend_x + (k//legend_l * legend_dx), legend_y + (k%legend_l * legend_dy), legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
+
+    legend_x += legend_dx
+
+    methods = methods[1:]
+    labels  = labels[1:]
+
+    for k in range(len(methods)):
+        ax_traj[0].text(legend_x + legend_d + (k//legend_l * legend_dx), legend_y + (k%legend_l * legend_dy), labels[k], ha='center', va='center', **DEF_LABELPROPS)
+        ax_traj[0].text(legend_x + (k//legend_l * legend_dx), legend_y + (k%legend_l * legend_dy), methods[k], ha='left', va='center', **DEF_LABELPROPS)
+
+    # Save figure
+
+    plot.savefig('figures/fig2-performance.pdf', **FIGPROPS)
+    plot.close(fig)
+
+    print('Figure 2 done.')
 
 
 def plot_figure_hiv_summary(**pdata):
@@ -496,7 +765,7 @@ def plot_figure_hiv_summary(**pdata):
 
     dx = -0.08
     dy =  0.025/hshrink
-    ax_circ.text(box_circ['left']+dx, box_epit['top']+dy, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_circ.text(box_circ['left']+dx, box_epit['top']+dy, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## b -- enrichment in CD8+ T cell escape mutations
     
@@ -525,7 +794,7 @@ def plot_figure_hiv_summary(**pdata):
 
     dx = -0.10
     dy =  0.025/hshrink
-    ax_epit.text(box_epit['left']+dx, box_epit['top']+dy, 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_epit.text(box_epit['left']+dx, box_epit['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## c -- enrichment in reversions
 
@@ -550,7 +819,7 @@ def plot_figure_hiv_summary(**pdata):
     mp.line(             ax=ax_reve, x=[x_enr], y=[y_rev_SL], plotprops=lineprops, **pprops)
     mp.plot(type='fill', ax=ax_reve, x=[x_enr], y=[y_rev_SL], plotprops=fillprops, **pprops)
 
-    ax_reve.text(box_reve['left']+dx, box_reve['top']+dy, 'c'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_reve.text(box_reve['left']+dx, box_reve['top']+dy, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     # legend
 
@@ -575,10 +844,10 @@ def plot_figure_hiv_summary(**pdata):
 
     # SAVE FIGURE
     
-    plot.savefig('figures/fig2-hiv-summary.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('figures/fig3-hiv-summary.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 2 done.')
+    print('Figure 3 done.')
 
 
 def plot_figure_ch77_kf9(**pdata):
@@ -727,7 +996,7 @@ def plot_figure_ch77_kf9(**pdata):
     ydat = [var_traj[len(var_tag)-1]]
     mp.plot(type='line', ax=ax_traj, x=xdat, y=ydat, colors=[var_c[len(var_tag)-1]], **pprops)
 
-    ax_traj.text(box_traj['left']+dx, box_traj['top']+dy, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_traj.text(box_traj['left']+dx, box_traj['top']+dy, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## b1 -- selection coefficients inferred by MPL
 
@@ -758,7 +1027,7 @@ def plot_figure_ch77_kf9(**pdata):
                           clip_on=False, transform=fig.transFigure)
     ax_smpl.text(box_smpl['left']+(box_smpl['right']-box_smpl['left'])/2, box_smpl['top'], 'MPL', **labelprops)
 
-    ax_smpl.text(box_smpl['left']+dx, box_smpl['top']+dy, 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_smpl.text(box_smpl['left']+dx, box_smpl['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## b2 -- selection coefficients inferred by SL
 
@@ -862,13 +1131,13 @@ def plot_figure_ch77_kf9(**pdata):
 
     mp.plot(type='scatter', ax=ax_ds, x=[[-5]], y=[[-5]], **pprops)
 
-    ax_ds.text(box_traj['left']+dx, box_ds['top']+0.03/hshrink, 'c'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_ds.text(box_traj['left']+dx, box_ds['top']+0.03/hshrink, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## d -- circle plot
 
     sig_s, sig_site_real, sig_nuc_idx, epitope_start, epitope_end = plot_circle(ax_circ, tag, epitope_range, epitope_label, cov_label, label2ddr)
     
-    ax_circ.text(box_circ['left']-0.02, box_circ['top']+dy, 'd'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_circ.text(box_circ['left']-0.02, box_circ['top']+dy, 'd'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     # MAKE LEGEND
 
@@ -1020,7 +1289,7 @@ def plot_figure_cap256_vrc26(**pdata):
     ydat = [var_traj[len(var_tag)-1]]
     mp.plot(type='line', ax=ax_traj, x=xdat, y=ydat, colors=[var_c[len(var_tag)-1]], **pprops)
 
-    ax_traj.text(0.06, box_traj['top']+dy, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_traj.text(0.06, box_traj['top']+dy, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     invt = ax_traj.transData.inverted()
     xy1  = invt.transform((  0, 0))
@@ -1072,7 +1341,7 @@ def plot_figure_cap256_vrc26(**pdata):
 
     dx =  0.04
     dy = -0.02
-    ax_circ.text(0.06, box_circ['top']+dy, 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_circ.text(0.06, box_circ['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## c -- selection in the VRC26 epitope
 
@@ -1148,7 +1417,7 @@ def plot_figure_cap256_vrc26(**pdata):
 
     mp.plot(type='scatter', ax=ax_smpl, x=[TF_dots_x], y=[TF_dots_y], **pprops)
 
-    ax_smpl.text(0.06, box_smpl['top']+0.02, 'c'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_smpl.text(0.06, box_smpl['top']+0.02, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     txtprops = dict(ha='center', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL)
     for i in range(len(NUC)-1):
@@ -1200,10 +1469,10 @@ def plot_figure_cap256_vrc26(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/fig4-cap256-vrc26.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('figures/fig6-cap256-vrc26.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 4 done.')
+    print('Figure 6 done.')
 
 
 def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
@@ -1657,8 +1926,8 @@ def plot_supplementary_figure_example_mpl(**pdata):
 
     ### bounding boxes
 
-    ax[0][0].text(boxl[0]-0.03,    0.98, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax[0][0].text(boxl[0]-0.03, boxt[0], 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax[0][0].text(boxl[0]-0.03,    0.98, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax[0][0].text(boxl[0]-0.03, boxt[0], 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     lineprops = { 'lw' : AXWIDTH/2., 'ls' : '-', 'alpha' : 1.0 }
     pprops    = { 'xlim' : [0, 1], 'xticks' : [], 'ylim' : [0, 1], 'yticks' : [],
@@ -1792,9 +2061,9 @@ def plot_supplementary_figure_example_mpl(**pdata):
     ax_ru.text((box_ru['right']-box_ru['left'])/2+box_ru['left'],  box_l['top']+dy, 'Mean AUROC (beneficial)',  **tprops)
     ax_ru.text((box_rl['right']-box_rl['left'])/2+box_rl['left'], box_rl['top']+dy, 'Mean AUROC (deleterious)', **tprops)
 
-    ax_l.text(  box_l['left']+dx,  box_l['top']+dy, 'c'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax_ru.text(box_ru['left']+dx, box_ru['top']+dy, 'd'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax_rl.text(box_rl['left']+dx, box_rl['top']+dy, 'e'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_l.text(  box_l['left']+dx,  box_l['top']+dy, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_ru.text(box_ru['left']+dx, box_ru['top']+dy, 'd'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_rl.text(box_rl['left']+dx, box_rl['top']+dy, 'e'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     # SAVE FIGURE
 
@@ -1802,256 +2071,6 @@ def plot_supplementary_figure_example_mpl(**pdata):
     plot.close(fig)
 
     print('Figure S1 done.')
-
-
-def plot_supplementary_figure_performance(**pdata):
-    """
-    Comparisons versus existing methods of selection inference.
-    """
-    
-    # unpack data
-
-    test_sets = pdata['test_sets']
-    traj_file = pdata['traj_file']
-    t_ticks   = pdata['t_ticks']
-    n_ben     = pdata['n_ben']
-    n_neu     = pdata['n_neu']
-    n_del     = pdata['n_del']
-    x_ben     = pdata['x_ben']
-    y_ben     = pdata['y_ben']
-    x_del     = pdata['x_del']
-    y_del     = pdata['y_del']
-    x_err     = pdata['x_err']
-    y_err     = pdata['y_err']
-    x_t       = pdata['x_t']
-    y_t       = pdata['y_t']
-
-    # PLOT FIGURE
-
-    ## set up figure grid
-
-    w       = DOUBLE_COLUMN
-    hshrink = 0.90
-    goldh   = 0.90 * w * hshrink
-    fig     = plot.figure(figsize=(w, goldh))
-
-    box_top   = 0.93
-    box_left  = 0.25
-    box_right = 0.75
-    ddy      = 0.06 / hshrink
-    dy       = 0.10 / hshrink
-
-    box_traj = dict(left=box_left, right=box_right, bottom=box_top-(1*dy)-(0*ddy), top=box_top-(0*dy)-(0*ddy))
-    box_cben = dict(left=box_left, right=box_right, bottom=box_top-(2*dy)-(1*ddy), top=box_top-(1*dy)-(1*ddy))
-    box_cdel = dict(left=box_left, right=box_right, bottom=box_top-(3*dy)-(2*ddy), top=box_top-(2*dy)-(2*ddy))
-    box_rmse = dict(left=box_left, right=box_right, bottom=box_top-(4*dy)-(3*ddy), top=box_top-(3*dy)-(3*ddy))
-    box_time = dict(left=box_left, right=box_right, bottom=box_top-(5*dy)-(4*ddy), top=box_top-(4*dy)-(4*ddy))
-
-    gs_traj = gridspec.GridSpec(1, len(test_sets), wspace=0.05, **box_traj)
-    gs_cben = gridspec.GridSpec(1, len(test_sets), wspace=0.05, **box_cben)
-    gs_cdel = gridspec.GridSpec(1, len(test_sets), wspace=0.05, **box_cdel)
-    gs_rmse = gridspec.GridSpec(1, len(test_sets), wspace=0.05, **box_rmse)
-    gs_time = gridspec.GridSpec(1, len(test_sets), wspace=0.05, **box_time)
-
-    ax_traj = [plot.subplot(gs_traj[0, i]) for i in range(len(test_sets))]
-    ax_cben = [plot.subplot(gs_cben[0, i]) for i in range(len(test_sets))]
-    ax_cdel = [plot.subplot(gs_cdel[0, i]) for i in range(len(test_sets))]
-    ax_rmse = [plot.subplot(gs_rmse[0, i]) for i in range(len(test_sets))]
-    ax_time = [plot.subplot(gs_time[0, i]) for i in range(len(test_sets))]
-
-    ## set colors and methods list
-
-    hc        = '#FFB511'
-    nc        = C_NEU_LT
-    methods   = ['MPL', 'FIT', 'LLS', 'CLEAR', 'EandR', 'ApproxWF', 'WFABC',  'IM']
-    labels    = ['MPL',   '1',   '2',     '3',     '4',        '5',     '6',   '7']
-    colorlist = [   hc,    nc,    nc,      nc,      nc,         nc,      nc,    nc]
-
-    hist_props = dict(lw=SIZELINE/2, width=0.75, align='center', orientation='vertical',
-                      edgecolor=[BKCOLOR for i in range(len(methods))])
-
-    ## a -- example trajectory
-
-    for k in range(len(test_sets)):
-        data  = np.loadtxt(traj_file[k])
-        times = np.unique(data.T[0])
-        x     = []
-        for i in range(len(times)):
-            idx    = data.T[0]==times[i]
-            t_data = data[idx].T[2:].T
-            t_num  = data[idx].T[1].T
-            t_freq = np.einsum('i,ij->j', t_num, t_data) / float(np.sum(t_num))
-            x.append(t_freq)
-        x = np.array(x).T
-
-        pprops = { 'xlim':      [np.min(times), np.max(times)],
-                   'ylim':      [0, 1.05],
-                   'xticks':    t_ticks[k],
-                   'yticks':    [],
-                   'xlabel':    'Generation',
-                   'plotprops': {'lw': SIZELINE, 'ls': '-', 'alpha': 0.6 },
-                   'axoffset':  0.1,
-                   'theme':     'open',
-                   'hide':      ['left','right'] }
-
-        if k==0:
-            pprops['yticks']      = [0, 1]
-            pprops['yminorticks'] = [0.25, 0.5, 0.75]
-            pprops['ylabel']      = 'Allele\nfrequency, ' + r'$x$'
-            pprops['hide']        = []
-
-        xdat = [times for i in range(n_ben[k])]
-        ydat = [i for i in x[:n_ben[k]]]
-        pprops['plotprops']['alpha'] = 1
-        mp.line(ax=ax_traj[k], x=xdat, y=ydat, colors=[C_BEN_LT for i in range(len(x))], **pprops)
-
-        xdat = [times for i in range(n_neu[k])]
-        ydat = [i for i in x[n_ben[k]:n_ben[k]+n_neu[k]]]
-        pprops['plotprops']['alpha'] = 0.4
-        mp.line(ax=ax_traj[k], x=xdat, y=ydat, colors=[C_NEU for i in range(len(x))], **pprops)
-
-        xdat = [times for i in range(n_del[k])]
-        ydat = [i for i in x[n_ben[k]+n_neu[k]:]]
-        pprops['plotprops']['alpha'] = 1
-        mp.plot(type='line', ax=ax_traj[k], x=xdat, y=ydat, colors=[C_DEL_LT for i in range(len(x))], **pprops)
-
-    ## b -- classification of beneficial mutants
-
-    for k in range(len(test_sets)):
-        xmin, xmax = -0.6, len(x_ben[k])-0.6
-        ymin, ymax =  0.5, 1.0
-
-        pprops = { 'colors':      [colorlist],
-                   'xlim':        [xmin, xmax],
-                   'ylim':        [ymin, ymax],
-                   'xticks':      x_ben[k],
-                   'xticklabels': labels,
-                   'yticks':      [],
-                   'theme':       'open',
-                   'hide':        ['left','right'] }
-
-        if k==0:
-            pprops['yticks'] = [0.5, 0.75, 1.0]
-            pprops['ylabel'] = 'Classification of\nbeneficial alleles\n(AUROC)'
-            pprops['hide']   = []
-        
-        mp.plot(type='bar', ax=ax_cben[k], x=[x_ben[k]], y=[y_ben[k]], plotprops=hist_props, **pprops)
-
-    ## c -- classification of deleterious mutants
-
-    for k in range(len(test_sets)):
-        xmin, xmax = -0.6, len(x_err[k])-0.6
-        ymin, ymax =  0.5, 1.0
-
-        pprops = { 'colors':      [colorlist],
-                   'xlim':        [xmin, xmax],
-                   'ylim':        [ymin, ymax],
-                   'xticks':      x_del[k],
-                   'xticklabels': labels,
-                   'yticks':      [],
-                   'theme':       'open',
-                   'hide':        ['left','right'] }
-
-        if k==0:
-            pprops['yticks'] = [0.5, 0.75, 1.0]
-            pprops['ylabel'] = 'Classification of\ndeleterious alleles\n(AUROC)'
-            pprops['hide']   = []
-        
-        mp.plot(type='bar', ax=ax_cdel[k], x=[x_del[k]], y=[y_del[k]], plotprops=hist_props, **pprops)
-
-    ## d - NRMSE
-
-    for k in range(len(test_sets)):
-        xmin, xmax = -0.6, len(x_err[k])-0.6
-        ymin, ymax =  0., 3.
-        
-        print('%s\tNRMSE between %.2f and %.2f' % (test_sets[k], np.min(y_err[k]), np.max(y_err[k])))
-
-        pprops = { 'colors':      [colorlist],
-                   'xlim':        [xmin, xmax],
-                   'ylim':        [ymin, ymax],
-                   'xticks':      x_err[k],
-                   'xticklabels': labels,
-                   'yticks':      [],
-                   'theme':       'open',
-                   'hide':        ['left','right'] }
-
-        if k==0:
-            pprops['yticks']      = [0, 1, 2, 3]
-            pprops['ylabel']      = 'Error on inferred\nselection coefficients\n(NRMSE)'
-            pprops['hide']        = []
-        
-        mp.plot(type='bar', ax=ax_rmse[k], x=[x_err[k]], y=[y_err[k]], plotprops=hist_props, **pprops)
-
-    ## e - run time
-
-    for k in range(len(test_sets)):
-        xmin, xmax = -0.6, len(x_t[k])-0.6
-        ymin, ymax = -3, 6
-        
-        print('%s\ttime between %.2f and %.2f' % (test_sets[k], np.min(y_t[k]), np.max(y_t[k])))
-
-        pprops = { 'colors':      [colorlist],
-                   'xlim':        [xmin, xmax],
-                   'ylim':        [ymin, ymax],
-                   'xticks':      x_t[k],
-                   'xticklabels': labels,
-                   'yticks':      [],
-                   'theme':       'open',
-                   'hide':        ['left','right'] }
-
-        if k==0:
-            pprops['yticks']      = [-3, 0, 3, 6]
-            pprops['ylabel']      = 'Run time\n' + '(log' +r'$_{10}$' '(seconds))'
-            pprops['hide']        = []
-        
-        mp.plot(type='bar', ax=ax_time[k], x=[x_t[k]], y=[y_t[k]], plotprops=hist_props, **pprops)
-
-        ax_time[k].text(box_left + (1.04*k+0.5)*(box_right - box_left)/len(test_sets), box_traj['top']+0.02,
-                        test_sets[k].split('_')[1].capitalize(),
-                        ha='center', va='center', transform=fig.transFigure, clip_on=False, **DEF_LABELPROPS)
-
-    # labels and legend
-
-    labelx = 0.18
-    ax_traj[0].text(labelx, box_traj['top'] + 0.01, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax_cben[0].text(labelx, box_cben['top'] + 0.02, 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax_cdel[0].text(labelx, box_cdel['top'] + 0.02, 'c'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax_rmse[0].text(labelx, box_rmse['top'] + 0.02, 'd'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-    ax_time[0].text(labelx, box_time['top'] + 0.02, 'e'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
-
-    invt = ax_traj[0].transData.inverted()
-    xy1  = invt.transform((  0, 0))
-    xy2  = invt.transform((7.5, 9))
-    xy3  = invt.transform((3.0, 9))
-
-    legend_dx1 = xy1[0]-xy2[0]
-    legend_dx2 = xy1[0]-xy3[0]
-    legend_dy  = xy1[1]-xy2[1]
-
-    legend_x  =  700
-    legend_d  = -10
-    legend_y  =  1.0
-    legend_t  = ['Beneficial', 'Neutral', 'Deleterious']
-    legend_c  = [   C_BEN,    C_NEU,    C_DEL]
-    legend_cl = [C_BEN_LT, C_NEU_LT, C_DEL_LT]
-    plotprops = DEF_ERRORPROPS.copy()
-    plotprops['clip_on'] = False
-    for k in range(len(legend_t)):
-        mp.error(ax=ax_traj[0], x=[[legend_x + legend_d]], y=[[legend_y + (k * legend_dy)]],
-                 edgecolor=[legend_c[k]], facecolor=[legend_cl[k]], plotprops=plotprops, **pprops)
-        ax_traj[0].text(legend_x, legend_y + (k * legend_dy), legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
-
-    for k in range(1, len(methods)):
-        ax_traj[0].text(legend_x + legend_d, legend_y + ((k + 3) * legend_dy), labels[k], ha='center', va='center', **DEF_LABELPROPS)
-        ax_traj[0].text(legend_x, legend_y + ((k + 3) * legend_dy), methods[k], ha='left', va='center', **DEF_LABELPROPS)
-
-    # Save figure
-
-    plot.savefig('figures/figs2-performance.pdf', **FIGPROPS)
-    plot.close(fig)
-
-    print('Figure S2 done.')
 
 
 def plot_supplementary_figure_absolute_delta_s(**pdata):
@@ -2091,9 +2110,11 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
 
     for k in range(len(patient_list)):
     
-        ds_max = 1.281
-        #ds_max = 0.006
-        n_bins = 50
+#        ds_max = 1.281
+#        #ds_max = 0.006
+#        n_bins = 50
+        ds_max = 0.40
+        n_bins = 41
         bin_ds = ds_max/n_bins
         bins   = np.arange(0, ds_max+bin_ds, bin_ds)
         hist_y = [np.sum((bins[i]<=ds_values[k]) & (ds_values[k]<bins[i+1])) for i in range(len(bins)-1)] #/len(ds_values[k])
@@ -2107,8 +2128,11 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
 
         hist_props = dict(lw=AXWIDTH/2, width=0.9*ds_max/n_bins, align='center', orientation='vertical', edgecolor=[BKCOLOR])
 
-        pprops = { 'xlim':        [0, 1.3],
-                   'xticks':      [ 0, 0.4, 0.8, 1.2, 1.3],
+        pprops = { #'xlim':        [0, 1.3],
+                   #'xticks':      [ 0, 0.4, 0.8, 1.2, 1.3],
+                   #'xticklabels': ['',  '',  '',  '',  ''],
+                   'xlim':        [0, 0.41],
+                   'xticks':      [ 0, 0.1, 0.2, 0.3, 0.4],
                    'xticklabels': ['',  '',  '',  '',  ''],
                    'ylim':        [0, 4],
                    'yticks':      [],
@@ -2125,14 +2149,14 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
             pprops['hide'].remove('left')
         
         if i_idx==5 or (j_idx>1 and i_idx==4):
-            pprops['xticklabels'] = [0, 40, 80, 120, '']
+            pprops['xticklabels'] = [r'$0$', r'$10$', r'$20$', r'$30$', r'$\geq 40$']
             pprops['xlabel']      = 'Sum of absolute values\nof effects on inferred\nselection coefficients,\n' + r'$\sum_j\|\Delta \hat{s}_{ij}\|$' + ' (%)'
 
         ax = plot.subplot(gs_hist[i_idx, j_idx])
         mp.plot(type='bar', ax=ax, x=[bins+(bin_ds/2)], y=[hist_y], **pprops)
         
         tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
-        ax.text(0.65, 3.25, patient_list[k].upper() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
+        ax.text(0.20, 3.25, patient_list[k].lower() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
         
         if j_idx<4:
             j_idx += 1
@@ -2146,6 +2170,92 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
     plot.close(fig)
 
     print('Delta s histogram done.')
+
+
+def plot_supplementary_figure_delta_s_correlation(**pdata):
+    """
+    Scatter plots of \Delta s_ij versus \Delta s_ij for variants in each patient/genomic region.
+    """
+    
+    # unpack data
+    
+    patient_list = pdata['patient_list']
+    region_list  = pdata['region_list']
+    ds_values_x  = pdata['ds_values_x']
+    ds_values_y  = pdata['ds_values_y']
+    fig_title    = pdata['fig_title']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = DOUBLE_COLUMN
+    hshrink = 0.94
+    goldh   = w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+
+    box_top    = 0.98
+    box_bottom = 0.11
+    box_left   = 0.10
+    box_right  = 0.90
+    ddy      = 0.06 / hshrink
+    dy       = 0.10 / hshrink
+
+    box_hist = dict(left=box_left, right=box_right, bottom=box_bottom, top=box_top)
+    gs_hist  = gridspec.GridSpec(6, 5, wspace=0.15, hspace=0.20, **box_hist)
+    i_idx    = 0
+    j_idx    = 0
+
+    # iterate through patients/regions and plot \Delta s pairs
+
+    for k in range(len(patient_list)):
+    
+        plotprops = dict(lw=0, marker='o', s=SMALLSIZEDOT, clip_on=False)
+        
+        pprops = { 'xlim':        [-0.05, 0.05],
+                   'xticks':      [-0.05, 0, 0.05],
+                   'xticklabels': ['', '', ''],
+                   'ylim':        [-0.05, 0.05],
+                   'yticks':      [],
+                   'yticklabels': [],
+                   'colors':      ['#FFB511'],
+                   'plotprops':   plotprops,
+                   'axoffset':    0.1,
+                   'theme':       'open',
+                   'hide':        ['left'] }
+
+        if j_idx==0:
+            pprops['yticks']      = [-0.05, 0, 0.05]
+            pprops['yticklabels'] = [-5, 0, 5]
+            pprops['ylabel']      = r'$\Delta \hat{s}_{ji}$'
+            pprops['hide'].remove('left')
+        
+        if i_idx==5 or (j_idx>1 and i_idx==4):
+            pprops['xticklabels'] = [-5, 0, 5]
+            pprops['xlabel']      = r'$\Delta \hat{s}_{ij}$' + ', (%)'
+
+        ax = plot.subplot(gs_hist[i_idx, j_idx])
+        mp.plot(type='scatter', ax=ax, x=[ds_values_x[k]], y=[ds_values_y[k]], **pprops)
+        
+        print(st.spearmanr(ds_values_x[k], ds_values_y[k]))
+        print(np.min(ds_values_x[k]), np.max(ds_values_x[k]), np.mean(ds_values_x[k]), np.std(ds_values_x[k]))
+        print(np.min(ds_values_y[k]), np.max(ds_values_y[k]))
+        
+        tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
+        ax.text(0.20, 3.25, patient_list[k].lower() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
+        
+        if j_idx<4:
+            j_idx += 1
+        else:
+            i_idx += 1
+            j_idx  = 0
+
+    # SAVE FIGURE
+
+    plot.savefig('figures/%s.png' % (fig_title), dpi = 1200, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('Delta s scatter done.')
 
 
 def plot_supplementary_figure_delta_s_distance(**pdata):
@@ -2275,6 +2385,231 @@ def plot_supplementary_figure_delta_s_distance(**pdata):
     print('Delta s distance distribution done.')
 
 
+def plot_figure_delta_s_hive(**pdata):
+    """
+    Hive plot of \Delta s effects.
+    """
+
+    # unpack data
+    
+    patient_list = pdata['patient_list']
+    region_list  = pdata['region_list']
+    fig_title    = pdata['fig_title']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = DOUBLE_COLUMN
+    hshrink = 0.4 # * (0.95 / 0.85)
+    goldh   = w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+
+    box_top    = 1.00
+    box_bottom = 0.05
+    box_left   = 0.025
+    box_right  = 0.975
+
+    box_hive = dict(left=box_left, right=box_right, bottom=box_bottom, top=box_top)
+    gs_hive  = gridspec.GridSpec(2, 5, wspace=0, hspace=0, **box_hive)
+    i_idx    = 0
+    j_idx    = 0
+
+    # iterate through patients/regions and plot hive plots
+
+    for k in range(len(patient_list)):
+    
+        ax = plot.subplot(gs_hive[i_idx, j_idx])
+        plot_hive(ax, patient_list[k]+'-'+region_list[k])
+        
+        tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
+        if i_idx==0:
+            ax.text(0, 0.70, patient_list[k].lower(), **tprops)
+        if j_idx==0:
+            ax.text(-1.15, -0.10, r'$%d\prime$' % int(region_list[k]), **tprops)
+
+        if j_idx<2:
+            j_idx += 1
+        else:
+            i_idx += 1
+            j_idx  = 0
+
+    # plot legend
+
+    ax_hive = plot.subplot(gs_hive[-2:, -2:])
+    
+    idx_mask_pos  = [90]
+    idx_delta_pos = [90]
+    ds_pos        = [ 1]
+    idx_mask_neg  = [70]
+    idx_delta_neg = [70]
+    ds_neg        = [ 1]
+
+    # arc plot for large values of Delta s
+
+    L         = 100
+    ds_cutoff = 0.004
+    ds_max    = 0.01
+    r_min     = 0.025
+    r_max     = 0.50
+    r_norm    = float(L) / (r_max - r_min)
+    arc_mult  = SIZELINE * 3 * ds_max
+    arc_alpha = 1
+
+    mask_angle_p =  -np.pi/2
+    mask_angle_n = 3*np.pi/2
+    ds_pos_angle =   np.pi/6
+    ds_neg_angle = 5*np.pi/6
+    da           = 0.005
+
+    circ_color  = [hls_to_rgb(0.02, 0.53 * ds + 1. * (1 - ds), 0.83) for ds in ds_pos]
+    circ_color += [hls_to_rgb(0.58, 0.53 * ds + 1. * (1 - ds), 0.60) for ds in ds_neg]
+    circ_rad    = [[r_min + idx_mask_pos[i]/r_norm, r_min + idx_delta_pos[i]/r_norm] for i in range(len(ds_pos))]
+    circ_rad   += [[r_min + idx_mask_neg[i]/r_norm, r_min + idx_delta_neg[i]/r_norm] for i in range(len(ds_neg))]
+    circ_arc    = [dict(lw=arc_mult * np.fabs(0.1) / ds_cutoff, alpha=arc_alpha) for ds in ds_pos]
+    circ_arc   += [dict(lw=arc_mult * np.fabs(0.1) / ds_cutoff, alpha=arc_alpha) for ds in ds_neg]
+    circ_angle  = [[mask_angle_p+da/r[0], ds_pos_angle-da/r[1]] for r in circ_rad[:len(ds_pos)]]
+    circ_angle += [[mask_angle_n-da/r[0], ds_neg_angle+da/r[1]] for r in circ_rad[len(ds_pos):]]
+    circ_bezrad = [(r[0]+r[1])/2 for r in circ_rad]
+    circ_x      = [i for i in ds_pos] + [i for i in ds_neg]
+    circ_y      = [i for i in ds_pos] + [i for i in ds_neg]
+    
+    # CD8+ T cell epitope legend
+
+    r_mid = r_min + (20 / r_norm)
+    scatter_x = [r_mid * np.cos(mask_angle_p),
+                 r_mid * np.cos(ds_pos_angle),
+                 r_mid * np.cos(ds_neg_angle) ]
+    scatter_y = [r_mid * np.sin(mask_angle_p),
+                 r_mid * np.sin(ds_pos_angle),
+                 r_mid * np.sin(ds_neg_angle) ]
+    smallprops = dict(lw=0, marker='o', s=1.0*SMALLSIZEDOT, zorder=9999, clip_on=False)
+    bigprops   = dict(lw=0, marker='o', s=1.7*SMALLSIZEDOT, zorder=9998, clip_on=False)
+    mp.scatter(ax=ax_hive, x=[scatter_x], y=[scatter_y], colors=['#FFFFFF'], plotprops=smallprops)
+    mp.scatter(ax=ax_hive, x=[scatter_x], y=[scatter_y], colors=[BKCOLOR],   plotprops=  bigprops)
+    
+    # add legend labels
+
+    ## epitope label
+    label_r  = r_mid
+    ddx, ddy = 0.09/2, 0.15/2
+    label_x  = [label_r * np.cos(ds_neg_angle)]
+    label_y  = [label_r * np.sin(ds_neg_angle) + 0.5*ddy]
+    label_x  = label_x + [label_x[0]]
+    label_y  = label_y + [label_y[0] + 2*ddy]
+
+    txtprops  = dict(ha='center', va='bottom', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0)
+    plotprops = dict(lw=AXWIDTH, ls='-', clip_on=False)
+    
+    ax_hive.text(label_x[-1], label_y[-1] + 0.125*ddy, 'CD8+ T cell\nepitope', **txtprops)
+    mp.line(ax=ax_hive, x=[label_x], y=[label_y], colors=[BKCOLOR], plotprops=plotprops)
+    
+    ## 5' -- 3' label
+    arrow_x  = np.array([r_min * np.cos(ds_pos_angle), r_max * np.cos(ds_pos_angle)]) - 0.03/2
+    arrow_y  = np.array([r_min * np.sin(ds_pos_angle), r_max * np.sin(ds_pos_angle)]) + 0.10/2
+    txtprops = dict(ha='center', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=180*ds_pos_angle/np.pi)
+    
+    ddr = 0.05/2
+    ax_hive.text(arrow_x[0] + 1.0 * ddr * np.cos(ds_pos_angle), arrow_y[0] + 0.1/2 + 1.0 * ddr * np.sin(ds_pos_angle), r'$5\prime$', **txtprops)
+    ax_hive.text(arrow_x[1] - 2.5 * ddr * np.cos(ds_pos_angle), arrow_y[1] + 0.1/2 - 2.5 * ddr * np.sin(ds_pos_angle), r'$3\prime$', **txtprops)
+
+    ax_hive.annotate('', xy=(arrow_x[1], arrow_y[1]), xytext=(arrow_x[0], arrow_y[0]),
+                     arrowprops=dict(color=BKCOLOR, lw=0, shrink=0.0, width=AXWIDTH, headwidth=AXWIDTH*5, headlength=AXWIDTH*5),)
+    
+    ## focus/target labels
+    label_r = 1.15/2
+    tprops  = dict(ha='center', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
+    ax_hive.text(label_r * np.cos(mask_angle_n), label_r * np.sin(mask_angle_n), 'Variant i', **tprops)
+    label_r = 1.1/2
+    tprops['ha'] = 'left'
+    ax_hive.text(label_r * np.cos(ds_pos_angle), label_r * np.sin(ds_pos_angle), 'Target\nvariant j', **tprops)
+    tprops['ha'] = 'right'
+    ax_hive.text(label_r * np.cos(ds_neg_angle), label_r * np.sin(ds_neg_angle), 'Target\nvariant j', **tprops)
+    
+    ## negative link label
+    label_r  = r_min + idx_mask_neg[0]/r_norm - 0.11/2
+    ddx, ddy = 0.09/2, 0.15/2
+    label_x  = [label_r * np.cos(np.pi)]
+    label_y  = [label_r * np.sin(np.pi) - 0.5*ddy]
+    label_x  = label_x + [label_x[0] - ddx, label_x[0] - 1.5*ddx]
+    label_y  = label_y + [label_y[0] - ddy, label_y[0] -     ddy]
+    
+    txtprops  = dict(ha='right', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0)
+    plotprops = dict(lw=AXWIDTH, ls='-', clip_on=False)
+    
+    ax_hive.text(label_x[-1] - 0.5*ddx, label_y[-1], 'Variant i decreases\ntarget ' + r'$\hat{s}_j$' + ', ' + r'$\Delta \hat{s}_{ij}<0$', **txtprops)
+    mp.line(ax=ax_hive, x=[label_x], y=[label_y], colors=[BKCOLOR], plotprops=plotprops)
+    
+    ## positive link label
+    label_r  = r_min + idx_mask_pos[0]/r_norm - 0.15/2
+    ddx, ddy = 0.09/2, 0.15/2
+    label_x  = [label_r * np.cos(0)]
+    label_y  = [label_r * np.sin(0) - 0.5*ddy]
+    label_x  = label_x + [label_x[0] + ddx, label_x[0] + 1.5*ddx]
+    label_y  = label_y + [label_y[0] - ddy, label_y[0] -     ddy]
+    
+    txtprops  = dict(ha='left', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0)
+    plotprops = dict(lw=AXWIDTH, ls='-', clip_on=False)
+    
+    ax_hive.text(label_x[-1] + 0.5*ddx, label_y[-1], 'Variant i increases\ntarget ' + r'$\hat{s}_j$' + ', ' + r'$\Delta \hat{s}_{ij}>0$', **txtprops)
+    mp.line(ax=ax_hive, x=[label_x], y=[label_y], colors=[BKCOLOR], plotprops=plotprops)
+    
+    ## color bar
+    ddx      =  0 #0.525
+    ddy      = -0.15
+    label_x  =  0
+    label_y  = -0.96
+    txtprops = dict(ha='center', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
+    ax_hive.text(label_x+ddx, label_y+ddy, 'Effect on inferred selection\ncoefficient, ' + r'$\Delta \hat{s}_{ij}$' + ' (%)', **txtprops)
+    
+    dbox      = 0.05
+    rec_props = dict(height=dbox, width=dbox, ec=None, lw=AXWIDTH/2, clip_on=False)
+    for i in range(-5, 5+1, 1):
+        c = BKCOLOR
+        t = i/5
+        if t>0:
+            c = hls_to_rgb(0.02, 0.53 * t + 1. * (1 - t), 0.83)
+        else:
+            c = hls_to_rgb(0.58, 0.53 * np.fabs(t) + 1. * (1 - np.fabs(t)), 0.60)
+        rec = matplotlib.patches.Rectangle(xy=((i-0.5)*dbox + ddx, -0.75 + ddy), fc=c, **rec_props)
+        ax_hive.add_artist(rec)
+
+    txtprops = dict(ha='center', va='top', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
+    ax_hive.text(-5.25*dbox + ddx, -0.78 + ddy, -1, **txtprops)
+    ax_hive.text(             ddx, -0.78 + ddy,  0, **txtprops)
+    ax_hive.text( 5.00*dbox + ddx, -0.78 + ddy,  1, **txtprops)
+    
+    # Make plot
+
+    pprops = { 'colors':   circ_color,
+               'xlim':     [-1.0, 1.0],
+               'ylim':     [-1.3, 0.7],
+               'size':     L,
+               'rad':      circ_rad,
+               'arcprops': circ_arc,
+               'angle':    circ_angle,
+               'bezrad':   circ_bezrad,
+               'noaxes':   True }
+
+    plotprops = dict(lw=AXWIDTH, ls='-', zorder=999)
+    line_x = [[r_min * np.cos(mask_angle_p), r_max * np.cos(mask_angle_p)],
+              [r_min * np.cos(ds_pos_angle), r_max * np.cos(ds_pos_angle)],
+              [r_min * np.cos(ds_neg_angle), r_max * np.cos(ds_neg_angle)] ]
+    line_y = [[r_min * np.sin(mask_angle_p), r_max * np.sin(mask_angle_p)],
+              [r_min * np.sin(ds_pos_angle), r_max * np.sin(ds_pos_angle)],
+              [r_min * np.sin(ds_neg_angle), r_max * np.sin(ds_neg_angle)] ]
+    mp.line(ax=ax_hive, x=line_x, y=line_y, colors=[BKCOLOR for i in range(len(line_x))], plotprops=plotprops)
+
+    mp.plot(type='circos', ax=ax_hive, x=circ_x, y=circ_y, **pprops)
+
+    # SAVE FIGURE
+
+    plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('Figure 4 done.')
+
+
 def plot_supplementary_figure_delta_s_hive(**pdata):
     """
     Hive plot of \Delta s effects.
@@ -2313,7 +2648,7 @@ def plot_supplementary_figure_delta_s_hive(**pdata):
         plot_hive(ax, patient_list[k]+'-'+region_list[k])
         
         tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
-        ax.text(0, -1.15, patient_list[k].upper() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
+        ax.text(0, -1.15, patient_list[k].lower() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
 
         if i_idx<4 and j_idx<4:
             j_idx += 1
@@ -2722,7 +3057,7 @@ def plot_supplementary_figure_epitope(**pdata):
     ydat = [var_traj[len(var_tag)-1]]
     mp.plot(type='line', ax=ax_traj, x=xdat, y=ydat, colors=[var_c[len(var_tag)-1]], **pprops)
 
-    ax_traj.text(0.25, box_traj['top']+dy, 'a'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_traj.text(0.25, box_traj['top']+dy, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## b1 -- selection coefficients inferred by MPL
 
@@ -2756,7 +3091,7 @@ def plot_supplementary_figure_epitope(**pdata):
                           clip_on=False, transform=fig.transFigure)
     ax_smpl.text(box_smpl['left']+(box_smpl['right']-box_smpl['left'])/2, box_smpl['top'], 'MPL', **labelprops)
 
-    ax_smpl.text(0.25, box_smpl['top']+dy, 'b'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_smpl.text(0.25, box_smpl['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     ## b2 -- selection coefficients inferred by SL
 
@@ -2788,7 +3123,7 @@ def plot_supplementary_figure_epitope(**pdata):
 
     sig_s, sig_site_real, sig_nuc_idx, epitope_start, epitope_end = plot_circle(ax_circ, tag, epitope_range, epitope_label, cov_label, label2ddr)
     
-    ax_circ.text(0.25, box_circ['top'], 'c'.upper(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_circ.text(0.25, box_circ['top'], 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
 
     # MAKE LEGEND
 
@@ -2952,10 +3287,10 @@ def plot_supplementary_figure_cap256_recombination(**pdata):
     ax_hist[-1].text(   0, -4, '6225', **tprops)
     ax_hist[-1].text(2645, -4, '8794', **tprops)
 
-    plot.savefig('figures/figs9-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('figures/figs8-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure S9 done.')
+    print('Figure S8 done.')
 
 
 def plot_hive(ax_hive, tag, **pdata):
