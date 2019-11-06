@@ -2,7 +2,7 @@
 
 This repository contains data and scripts for reproducing the results accompanying the manuscript
 
-### Resolving genetic linkage reveals patterns of selection in HIV-1 evolution  
+### Fitness inference from complex evolutionary histories with genetic linkage  
 Muhammad S. Sohail<sup>1,</sup>\*, Raymond H. Y. Louie<sup>1-4,</sup>\*, Matthew R. McKay<sup>1,5,#</sup> and John P. Barton<sup>6,#</sup>
 
 <sup>1</sup> Department of Electronic and Computer Engineering, Hong Kong University of Science and Technology  
