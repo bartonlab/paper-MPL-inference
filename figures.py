@@ -392,8 +392,8 @@ def plot_figure_performance(**pdata):
     box_top   = 0.96
     box_left  = 0.23
     box_right = 0.95
-    ddy      = 0.14 / hshrink
-    dy       = 0.12 / hshrink
+    ddy      = 0.12 / hshrink
+    dy       = 0.14 / hshrink
 
     box_traj = dict(left=box_left, right=box_right, bottom=box_top-(1*dy)-(0*ddy), top=box_top-(0*dy)-(0*ddy))
     box_cben = dict(left=box_left, right=box_right, bottom=box_top-(2*dy)-(1*ddy), top=box_top-(1*dy)-(1*ddy))
@@ -419,9 +419,13 @@ def plot_figure_performance(**pdata):
 
     hc        = '#FFB511'
     nc        = C_NEU_LT
+    hfc       = '#ffcd5e'
+    nfc       = '#f0f0f0'
     methods   = ['MPL', 'FIT', 'LLS', 'CLEAR', 'EandR', 'ApproxWF', 'WFABC',  'IM']
     labels    = ['MPL',   '1',   '2',     '3',     '4',        '5',     '6',   '7']
     colorlist = [   hc,    nc,    nc,      nc,      nc,         nc,      nc,    nc]
+    fclist    = [  hfc,   nfc,   nfc,     nfc,     nfc,        nfc,     nfc,   nfc]
+    eclist    = [BKCOLOR for k in range(len(methods))]
 
     hist_props = dict(lw=SIZELINE/2, width=0.75, align='center', orientation='vertical',
                       edgecolor=[BKCOLOR for i in range(len(methods))])
@@ -475,7 +479,8 @@ def plot_figure_performance(**pdata):
 
     for k in range(len(test_sets)):
         xmin, xmax = -0.6, len(x_ben[k])-0.6
-        ymin, ymax =  0.5, 1.0
+#        ymin, ymax =  0.3, 1.05
+        ymin, ymax =  0.5, 1.00
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
@@ -488,17 +493,52 @@ def plot_figure_performance(**pdata):
 
         if k==0:
             pprops['yticks'] = [0.5, 1.0]
+#            pprops['yminorticks'] = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9]
             pprops['yminorticks'] = [0.6, 0.7, 0.8, 0.9]
             pprops['ylabel'] = 'Classification of\nbeneficial alleles\n(AUROC)'
             pprops['hide']   = []
         
-        mp.plot(type='bar', ax=ax_cben[k], x=[x_ben[k]], y=[y_ben[k]], plotprops=hist_props, **pprops)
+        mp.plot(type='bar', ax=ax_cben[k], x=[x_ben[k]], y=[np.mean(y_ben[k], axis=1)], plotprops=hist_props, **pprops)
+
+        ax     = ax_cben[k]
+        x_vals = x_ben[k]
+        y_vals = y_ben[k]
+        y_avgs = np.mean(y_vals, axis=1)
+        del pprops['colors']
+
+        # plot standard deviation
+
+        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+        err        = np.std(y_vals, axis=1)
+        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot quartiles
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        errlow     = y_avgs - np.quantile(y_vals, 0.25, axis=1)
+#        errhigh    = np.quantile(y_vals, 0.75, axis=1) - y_avgs
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot data points
+#
+#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
+#        pprops['edgecolor'] = eclist
+#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
+#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+#
+#        pprops['facecolor'] = fclist
+#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
 
     ## c -- classification of deleterious mutants
 
     for k in range(len(test_sets)):
         xmin, xmax = -0.6, len(x_err[k])-0.6
-        ymin, ymax =  0.5, 1.0
+#        ymin, ymax =  0.3, 1.05
+        ymin, ymax =  0.5, 1.00
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
@@ -511,11 +551,45 @@ def plot_figure_performance(**pdata):
 
         if k==0:
             pprops['yticks'] = [0.5, 1.0]
+#            pprops['yminorticks'] = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9]
             pprops['yminorticks'] = [0.6, 0.7, 0.8, 0.9]
             pprops['ylabel'] = 'Classification of\ndeleterious alleles\n(AUROC)'
             pprops['hide']   = []
         
-        mp.plot(type='bar', ax=ax_cdel[k], x=[x_del[k]], y=[y_del[k]], plotprops=hist_props, **pprops)
+        mp.plot(type='bar', ax=ax_cdel[k], x=[x_del[k]], y=[np.mean(y_del[k], axis=1)], plotprops=hist_props, **pprops)
+        
+        ax     = ax_cdel[k]
+        x_vals = x_del[k]
+        y_vals = y_del[k]
+        y_avgs = np.mean(y_vals, axis=1)
+        del pprops['colors']
+        
+        # plot standard deviation
+
+        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+        err        = np.std(y_vals, axis=1)
+        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot quartiles
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        errlow     = y_avgs - np.quantile(y_vals, 0.25, axis=1)
+#        errhigh    = np.quantile(y_vals, 0.75, axis=1) - y_avgs
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot data points
+#
+#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
+#        pprops['edgecolor'] = eclist
+#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
+#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+#
+#        pprops['facecolor'] = fclist
+#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
 
     ## d - NRMSE
 
@@ -535,11 +609,60 @@ def plot_figure_performance(**pdata):
                    'hide':        ['left','right'] }
 
         if k==0:
-            pprops['yticks']      = [0, 1, 2, 3]
-            pprops['ylabel']      = 'Error on inferred\nselection coefficients\n(NRMSE)'
-            pprops['hide']        = []
+            pprops['yticks'] = [0, 1, 2, 3]
+            pprops['ylabel'] = 'Error on inferred\nselection coefficients\n(NRMSE)'
+            pprops['hide']   = []
         
-        mp.plot(type='bar', ax=ax_rmse[k], x=[x_err[k]], y=[y_err[k]], plotprops=hist_props, **pprops)
+        mp.plot(type='bar', ax=ax_rmse[k], x=[x_err[k]], y=[np.mean(y_err[k], axis=1)], plotprops=hist_props, **pprops)
+        
+        ax     = ax_rmse[k]
+        x_vals = x_err[k]
+        y_vals = y_err[k]
+        y_avgs = np.mean(y_vals, axis=1)
+        del pprops['colors']
+        
+        # plot standard deviation
+
+        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+        err        = np.std(y_vals, axis=1)
+        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot quartiles
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        errlow     = y_avgs - np.quantile(y_vals, 0.25, axis=1)
+#        errhigh    = np.quantile(y_vals, 0.75, axis=1) - y_avgs
+#
+##        print(y_avgs)
+##        print(y_avgs-errlow)
+##        print(errhigh+y_avgs)
+#
+##        print(np.median(y_vals[-2]), np.min(y_vals[-2]), np.max(y_vals[-2]))
+##        print(np.mean(y_vals[-2]))
+#
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot data points
+#
+#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
+#        pprops['edgecolor'] = eclist
+#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
+#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+#
+#        pprops['facecolor'] = fclist
+#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+        
+        # show 'NA' for FIT NRMSE
+        
+        transFigureInv = fig.transFigure.inverted()
+        temp_x, temp_y = transFigureInv.transform(ax_rmse[k].transData.transform([x_err[k][1], 0]))
+        labelprops     = dict(color=BKCOLOR, ha='center', va='bottom', family=FONTFAMILY, size=SIZELABEL, clip_on=False, transform=fig.transFigure)
+        ax_rmse[k].text(temp_x, box_rmse['bottom']+(0.2*dy), 'NA', **labelprops)
+        mp.line(ax=ax_rmse[k], x=[[x_err[k][1], x_err[k][1]]], y=[[0, 0.5]], plotprops=dict(linewidth=AXWIDTH, linestyle='-'), colors=[BKCOLOR])
 
     ## e - run time
 
@@ -563,11 +686,49 @@ def plot_figure_performance(**pdata):
             pprops['ylabel']      = 'Run time\n' + '(log' +r'$_{10}$' '(seconds))'
             pprops['hide']        = []
         
-        mp.plot(type='bar', ax=ax_time[k], x=[x_t[k]], y=[y_t[k]], plotprops=hist_props, **pprops)
+        mp.plot(type='bar', ax=ax_time[k], x=[x_t[k]], y=[np.mean(y_t[k], axis=1)], plotprops=hist_props, **pprops)
+        
+        ax     = ax_time[k]
+        x_vals = x_t[k]
+        y_vals = y_t[k]
+        y_avgs = np.mean(y_vals, axis=1)
+        del pprops['colors']
+        
+        # plot standard deviation
+
+        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+        err        = np.std(y_vals, axis=1)
+        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot quartiles
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        errlow     = y_avgs - np.quantile(y_vals, 0.25, axis=1)
+#        errhigh    = np.quantile(y_vals, 0.75, axis=1) - y_avgs
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+        
+#        # plot data points
+#
+#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
+#        pprops['edgecolor'] = eclist
+#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
+#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+#
+#        pprops['facecolor'] = fclist
+#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
 
         ax_time[k].text(box_left + (1.04*k+0.5)*(box_right - box_left)/len(test_sets), box_traj['top']+0.02,
                         test_sets[k].split('_')[1].capitalize(),
                         ha='center', va='center', transform=fig.transFigure, clip_on=False, **DEF_LABELPROPS)
+        
+        if 'facecolor' in pprops:
+            del pprops['facecolor']
+        if 'edgecolor' in pprops:
+            del pprops['edgecolor']
 
     # labels and legend
 
@@ -591,7 +752,7 @@ def plot_figure_performance(**pdata):
     legend_l  =  3
     legend_x  =  25
     legend_d  = -10
-    legend_y  = -10.5
+    legend_y  = -9
     legend_dx =  175
     legend_t  = ['Beneficial', 'Neutral', 'Deleterious']
     legend_c  = [   C_BEN,    C_NEU,    C_DEL]
@@ -2071,6 +2232,273 @@ def plot_supplementary_figure_example_mpl(**pdata):
     plot.close(fig)
 
     print('Figure S1 done.')
+    
+
+def plot_supplementary_figure_performance(**pdata):
+    """
+    Comparisons versus existing methods of selection inference.
+    """
+    
+    # unpack data
+
+    test_sets = pdata['test_sets']
+    traj_file = pdata['traj_file']
+    t_ticks   = pdata['t_ticks']
+    n_ben     = pdata['n_ben']
+    n_neu     = pdata['n_neu']
+    n_del     = pdata['n_del']
+    x_ben     = pdata['x_ben']
+    y_ben     = pdata['y_ben']
+    x_del     = pdata['x_del']
+    y_del     = pdata['y_del']
+    x_err     = pdata['x_err']
+    y_err     = pdata['y_err']
+    x_t       = pdata['x_t']
+    y_t       = pdata['y_t']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = DOUBLE_COLUMN
+    hshrink = 1
+    goldh   = 0.66 * w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+
+    box_top   = 0.94
+    box_left  = 0.15
+    box_right = 0.85
+    ddy       = 0.11 / hshrink
+    dy        = 0.21 / hshrink
+
+    box_cben = dict(left=box_left, right=box_right, bottom=box_top-(1*dy)-(0*ddy), top=box_top-(0*dy)-(0*ddy))
+    box_cdel = dict(left=box_left, right=box_right, bottom=box_top-(2*dy)-(1*ddy), top=box_top-(1*dy)-(1*ddy))
+    box_rmse = dict(left=box_left, right=box_right, bottom=box_top-(3*dy)-(2*ddy), top=box_top-(2*dy)-(2*ddy))
+    
+    wspace  = 0.10
+
+    gs_cben = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_cben)
+    gs_cdel = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_cdel)
+    gs_rmse = gridspec.GridSpec(1, len(test_sets), wspace=0.10, **box_rmse)
+    
+    ax_cben = [plot.subplot(gs_cben[0, i]) for i in range(len(test_sets))]
+    ax_cdel = [plot.subplot(gs_cdel[0, i]) for i in range(len(test_sets))]
+    ax_rmse = [plot.subplot(gs_rmse[0, i]) for i in range(len(test_sets))]
+    
+    ## set colors and methods list
+
+    hc        = '#FFB511'
+    nc        = C_NEU_LT
+    hfc       = '#ffcd5e'
+    nfc       = '#f0f0f0'
+    methods   = ['MPL', 'FIT', 'LLS', 'CLEAR', 'EandR', 'ApproxWF', 'WFABC',  'IM']
+    labels    = ['MPL',   '1',   '2',     '3',     '4',        '5',     '6',   '7']
+    colorlist = sns.husl_palette(len(methods)-1)
+    colorbg   = [c + [0.2] for c in colorlist]
+    
+    lineprops     = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
+    fillprops     = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
+    dashlineprops = { 'lw': SIZELINE*1.2, 'ls': ':', 'alpha': 1.0, 'color': BKCOLOR }
+    
+    tprops = dict(ha='center', va='top', family=FONTFAMILY, size=SIZELABEL, clip_on=False)
+    
+    N_BINS = 25
+
+    ## a -- classification of beneficial mutants
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.14, 0.50
+        ymin, ymax =  0, 40
+        
+        dmax = xmax - xmin
+        dval = [np.array(y_ben[k][0]) - np.array(y_ben[k][i]) for i in range(1, len(methods))]
+        
+        n_bins = N_BINS
+        bin_d  = dmax/n_bins
+        bins   = np.arange(xmin, xmax+bin_d, bin_d)
+        hist_y = []
+
+        for kk in range(len(methods)-1):
+            temp_hist_y = [np.sum((bins[i]<=dval[kk]) & (dval[kk]<bins[i+1])) for i in range(len(bins)-1)]
+            temp_hist_y.append(np.sum(dval[kk]>=bins[-1]))
+            #print(np.sum(temp_hist_y))
+            hist_y.append(np.insert(np.append(temp_hist_y, 0), 0, 0))
+                    
+        bins       = np.insert(np.append(bins, xmax+bin_d), 0, 0)
+        xmax      += bin_d
+        hist_props = dict(lw=AXWIDTH/2, width=0.9*dmax/n_bins, align='center', orientation='vertical', edgecolor=[BKCOLOR], alpha=0.6)
+    
+        ax_cben[k].text(xmin/2, 35, 'alternative\nmore\naccurate', color=BKCOLOR, rotation=0, **tprops)
+        ax_cben[k].text(xmax/2, 35, 'MPL more accurate', color=BKCOLOR, rotation=0, **tprops)
+        ax_cben[k].axvline(x=0, **dashlineprops)
+
+        pprops = { 'colors':      colorlist,
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      [-0.10, 0, 0.10, 0.20, 0.30, 0.40, 0.50],
+                   'xticklabels': ['-0.1', '0', '0.1', '0.2', '0.3', '0.4', r'$\geq 0.5$'],
+                   'yticks':      [],
+                   'xaxstart':    xmin,
+                   'xaxend':      xmax,
+                   'axoffset':    0,
+                   'xlabel':      'Improvement in classification of beneficial alleles (AUROC)',
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks'] = [0, 10, 20, 30, 40]
+            pprops['ylabel'] = 'Number of simulations'
+            pprops['hide']   = []
+        
+        mp.line(             ax=ax_cben[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=lineprops, **pprops)
+        mp.plot(type='fill', ax=ax_cben[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=fillprops, **pprops)
+        
+        #mp.plot(type='bar', ax=ax_cben[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=hist_props, **pprops)
+        
+        ax_cben[k].text(box_left + (1.04*k+0.5)*(box_right - box_left)/len(test_sets), box_cben['top']+0.03,
+                        test_sets[k].split('_')[1].capitalize(),
+                        ha='center', va='center', transform=fig.transFigure, clip_on=False, **DEF_LABELPROPS)
+
+
+    ## b -- classification of deleterious mutants
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.14, 0.50
+        ymin, ymax =  0, 40
+        
+        dmax = xmax - xmin
+        dval = [np.array(y_del[k][0]) - np.array(y_del[k][i]) for i in range(1, len(methods))]
+        
+        n_bins = N_BINS
+        bin_d  = dmax/n_bins
+        bins   = np.arange(xmin, xmax+bin_d, bin_d)
+        hist_y = []
+
+        for kk in range(len(methods)-1):
+            temp_hist_y = [np.sum((bins[i]<=dval[kk]) & (dval[kk]<bins[i+1])) for i in range(len(bins)-1)]
+            temp_hist_y.append(np.sum(dval[kk]>=bins[-1]))
+            #print(np.sum(temp_hist_y))
+            hist_y.append(np.insert(np.append(temp_hist_y, 0), 0, 0))
+                    
+        bins       = np.insert(np.append(bins, xmax+bin_d), 0, 0)
+        xmax      += bin_d
+        hist_props = dict(lw=AXWIDTH/2, width=0.9*dmax/n_bins, align='center', orientation='vertical', edgecolor=[BKCOLOR], alpha=0.6)
+            
+        ax_cdel[k].text(xmin/2, 35, 'alternative\nmore\naccurate', color=BKCOLOR, rotation=0, **tprops)
+        ax_cdel[k].text(xmax/2, 35, 'MPL more accurate', color=BKCOLOR, rotation=0, **tprops)
+        ax_cdel[k].axvline(x=0, **dashlineprops)
+
+        pprops = { 'colors':      colorlist,
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      [-0.10, 0, 0.10, 0.20, 0.30, 0.40, 0.50],
+                   'xticklabels': ['-0.1', '0', '0.1', '0.2', '0.3', '0.4', r'$\geq 0.5$'],
+                   'yticks':      [],
+                   'xaxstart':    xmin,
+                   'xaxend':      xmax,
+                   'axoffset':    0,
+                   'xlabel':      'Improvement in classification of deleterious alleles (AUROC)',
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks'] = [0, 10, 20, 30, 40]
+            pprops['ylabel'] = 'Number of simulations'
+            pprops['hide']   = []
+            
+        mp.line(             ax=ax_cdel[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=lineprops, **pprops)
+        mp.plot(type='fill', ax=ax_cdel[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=fillprops, **pprops)
+            
+        #mp.plot(type='bar', ax=ax_cdel[k], x=[bins+(bin_d/2) for kk in range(1, len(methods))], y=hist_y, plotprops=hist_props, **pprops)
+
+
+    ## c - NRMSE
+
+    for k in range(len(test_sets)):
+        xmin, xmax = -0.56, 2.0
+        ymin, ymax =  0, 40
+        
+        dmax = xmax - xmin
+        dval = [np.array(y_err[k][i]) - np.array(y_err[k][0]) for i in range(1, len(methods))]
+        
+        n_bins = N_BINS
+        bin_d  = dmax/n_bins
+        bins   = np.arange(xmin, xmax+bin_d, bin_d)
+        hist_y = []
+
+        for kk in range(len(methods)-1):
+            if kk==0:
+                hist_y.append([-1000 for i in range(len(bins)+2)])
+            else:
+                temp_hist_y = [np.sum((bins[i]<=dval[kk]) & (dval[kk]<bins[i+1])) for i in range(len(bins)-1)]
+                temp_hist_y.append(np.sum(dval[kk]>=bins[-1]))
+                #print(np.sum(temp_hist_y))
+                hist_y.append(np.insert(np.append(temp_hist_y, 0), 0, 0))
+                
+        bins       = np.insert(np.append(bins, xmax+bin_d), 0, 0)
+        xmax      += bin_d
+        hist_props = dict(lw=AXWIDTH/2, width=0.9*dmax/n_bins, align='center', orientation='vertical', edgecolor=[BKCOLOR], alpha=0.6)
+            
+        ax_rmse[k].text(xmin/2, 35, 'alternative\nmore\naccurate', color=BKCOLOR, rotation=0, **tprops)
+        ax_rmse[k].text(xmax/2, 35, 'MPL more accurate', color=BKCOLOR, rotation=0, **tprops)
+        ax_rmse[k].axvline(x=0, **dashlineprops)
+
+        pprops = { 'colors':      colorlist,
+                   'xlim':        [xmin, xmax],
+                   'ylim':        [ymin, ymax],
+                   'xticks':      [-0.5, 0, 0.5, 1.0, 1.5, 2.0],
+                   'xticklabels': ['-0.5', '0', '0.5', '1.0', '1.5', r'$\geq 2.0$'],
+                   'yticks':      [],
+                   'xaxstart':    xmin,
+                   'xaxend':      xmax,
+                   'axoffset':    0,
+                   'xlabel':      'Improvement in error on inferred selection coefficients (NRMSE)',
+                   'theme':       'open',
+                   'hide':        ['left','right'] }
+
+        if k==0:
+            pprops['yticks'] = [0, 10, 20, 30, 40]
+            pprops['ylabel'] = 'Number of simulations'
+            pprops['hide']   = []
+        
+        mp.line(             ax=ax_rmse[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=lineprops, **pprops)
+        mp.plot(type='fill', ax=ax_rmse[k], x=[bins+(bin_d/2) for kk in range(len(methods)-1)], y=hist_y, plotprops=fillprops, **pprops)
+        
+        #mp.plot(type='bar', ax=ax_rmse[k], x=[bins+(bin_d/2) for kk in range(1, len(methods))], y=hist_y, plotprops=hist_props, **pprops)
+
+
+    # labels and legend
+
+    labelx = 0.10
+    ax_cben[0].text(labelx, box_cben['top'] + 0.01, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_cdel[0].text(labelx, box_cdel['top'] + 0.01, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax_rmse[0].text(labelx, box_rmse['top'] + 0.01, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    invt = ax_cben[-1].transData.inverted()
+    xy1  = invt.transform((  0, 0))
+    xy2  = invt.transform((7.5, 9))
+    xy3  = invt.transform((3.0, 9))
+
+    legend_dx1 = xy1[0]-xy2[0]
+    legend_dx2 = xy1[0]-xy3[0]
+    legend_dy  = xy1[1]-xy2[1]
+
+    legend_x  =  0.6
+    legend_d  = -0.015
+    legend_y  = 35
+    plotprops = DEF_ERRORPROPS.copy()
+    plotprops['clip_on'] = False
+    for k in range(len(methods)-1):
+        mp.error(ax=ax_cben[-1], x=[[legend_x + legend_d]], y=[[legend_y + (k * legend_dy)]],
+                 edgecolor=[colorlist[k]], facecolor=[colorbg[k]], plotprops=plotprops, **pprops)
+        ax_cben[-1].text(legend_x, legend_y + (k * legend_dy), methods[k+1], ha='left', va='center', **DEF_LABELPROPS)
+
+    # Save figure
+
+    plot.savefig('figures/figs2-performance.pdf', **FIGPROPS)
+    plot.close(fig)
+
+    print('Figure S2 done.')
 
 
 def plot_supplementary_figure_absolute_delta_s(**pdata):
@@ -3287,10 +3715,10 @@ def plot_supplementary_figure_cap256_recombination(**pdata):
     ax_hist[-1].text(   0, -4, '6225', **tprops)
     ax_hist[-1].text(2645, -4, '8794', **tprops)
 
-    plot.savefig('figures/figs8-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('figures/figs9-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure S8 done.')
+    print('Figure S9 done.')
 
 
 def plot_hive(ax_hive, tag, **pdata):
