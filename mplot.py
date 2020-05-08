@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+#matplotlib.rcParams['pdf.fonttype'] = 42
+
 from matplotlib.ticker import FixedLocator
 from scipy.stats.kde   import gaussian_kde
 from copy import deepcopy
@@ -1283,7 +1285,7 @@ def getlogticks(lim, insertLow=False, insertHigh=True):
 
     low  = np.ceil(np.log10(lim[0]))
     high = np.floor(np.log10(lim[1]))
-    tick = np.logspace(low, high, num=1+high-low)
+    tick = np.logspace(low, high, num=int(1+high-low))
     
     if lim[0]!=10**low  and insertLow:  tick = np.insert(tick, 0,         lim[0])
     if lim[1]!=10**high and insertHigh: tick = np.insert(tick, len(tick), lim[1])

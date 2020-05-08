@@ -2294,7 +2294,7 @@ def plot_supplementary_figure_performance(**pdata):
     methods   = ['MPL', 'FIT', 'LLS', 'CLEAR', 'EandR', 'ApproxWF', 'WFABC',  'IM']
     labels    = ['MPL',   '1',   '2',     '3',     '4',        '5',     '6',   '7']
     colorlist = sns.husl_palette(len(methods)-1)
-    colorbg   = [c + [0.2] for c in colorlist]
+    colorbg   = [c + tuple([0.2]) for c in colorlist]
     
     lineprops     = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
     fillprops     = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
