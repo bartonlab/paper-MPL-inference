@@ -157,13 +157,15 @@ def filter_sequences(ppt, seq_path, check_time=True):
     # Read in msa sequences
     
     msa, tag = get_MSA(seq_path, noArrow=True)
+    msa, tag = list(msa), list(tag)
+    
     HXB2_idx = tag.index(HXB2_TAG)
     HXB2_seq = msa[HXB2_idx]
-    cons_idx = tag.index(CONS_TAG)
-    cons_seq = msa[cons_idx]
-    msa, tag = list(msa), list(tag)
     del msa[HXB2_idx]
     del tag[HXB2_idx]
+    
+    cons_idx = tag.index(CONS_TAG)
+    cons_seq = msa[cons_idx]
     del msa[cons_idx]
     del tag[cons_idx]
 
@@ -295,8 +297,8 @@ def order_sequences(msa, tag):
     return np.array(temp_msa + list(msa)), np.array(temp_tag + list(tag))
 
 
-def impute_ambiguous(msa, tag, start_index=0, verbose=True, protein=False):
-    """ Impute ambiguous nucleotides with the most frequently observed ones at the same time point in the alignment. """
+def impute_ambiguous(msa, tag, start_index=0, verbose=True, impute_edge_gaps=False):
+    """ Impute ambiguous nucleotides with the most frequently observed ones in the alignment. """
     
     # Impute ambiguous nucleotides
     for i in range(len(msa[0])):
@@ -338,6 +340,35 @@ def impute_ambiguous(msa, tag, start_index=0, verbose=True, protein=False):
                 msa[j][i] = new
                 if verbose:
                     print('\texchanged %s for %s in sequence %d, site %d' % (new, orig, j, i))
+                    
+    # Impute leading and trailing gaps
+    if impute_edge_gaps:
+        for j in range(start_index, len(msa)):
+            gap_lead = 0
+            gap_trail = 0
+            
+            gap_idx = 0
+            while msa[j][gap_idx]=='-':
+                gap_lead += 1
+                gap_idx += 1
+                
+            gap_idx = -1
+            while msa[j][gap_idx]=='-':
+                gap_trail -= 1
+                gap_idx -= 1
+                
+            for i in range(gap_lead):
+                avg = [np.sum([msa[k][i]==a for k in range(start_index, len(msa))]) for a in NUC]
+                new = NUC[np.argmax(avg)]
+                msa[j][i] = new
+                
+            for i in range(gap_trail, 0):
+                avg = [np.sum([msa[k][i]==a for k in range(start_index, len(msa))]) for a in NUC]
+                new = NUC[np.argmax(avg)]
+                msa[j][i] = new
+                
+            if (gap_lead>0) or (gap_trail<0):
+                print('\timputed %d leading gaps and %d trailing gaps in sequence %d' % (gap_lead, -1*gap_trail, j))
 
     return msa
 
@@ -393,7 +424,7 @@ def create_index(msa, tag, TF_seq, cons_seq, HXB2_seq, HXB2_start, min_seqs, max
     del tag[cons_idx]
     
     f = open('%s' % out_file, 'w')
-    f.write('alignment,polymorphic,HXB2,TF,consensus,epitope,exposed,flanking\n')
+    f.write('alignment,polymorphic,HXB2,TF,consensus,epitope,exposed,edge_gap,flanking\n')
     
     # Check for minimum number of sequences/maximum dt to truncate alignment
     temp_msa, temp_tag, times = get_times(msa, tag, sort=True)
@@ -452,9 +483,27 @@ def create_index(msa, tag, TF_seq, cons_seq, HXB2_seq, HXB2_start, min_seqs, max
         exposed = False
         if np.sum((HXB2_index-1>=df_exposed.start) & (HXB2_index-1<=df_exposed.end))>0:
             exposed = True
+            
+        # Flag edge gaps
+        edge_def = 200
+        edge_gap = False
+        if np.sum(temp_msa[:, i]=='-')>0 and ((i<edge_def) or (len(temp_msa[0])-i<edge_def)):
+            gap_seqs = [j for j in range(len(temp_msa)) if temp_msa[j][i]=='-']
+            gap_msa = temp_msa[gap_seqs]
+            edge_gap = True
+            if i<edge_def:
+                for s in gap_msa:
+                    if np.sum(s[:i]=='-')<i:
+                        edge_gap = False
+                        break
+            else:
+                for s in gap_msa:
+                    if np.sum(s[i:]=='-')<len(temp_msa[0])-i:
+                        edge_gap = False
+                        break
 
         # Save to file
-        f.write('%d,%s,%s,%s,%s,%s,%s,%d\n' % (i, poly_str, HXB2_str, TF_seq[i], cons_seq[i], epitope_str, exposed, flanking))
+        f.write('%d,%s,%s,%s,%s,%s,%s,%s,%d\n' % (i, poly_str, HXB2_str, TF_seq[i], cons_seq[i], epitope_str, exposed, edge_gap, flanking))
     f.close()
 
     temp_msa = [HXB2_seq, cons_seq] + list(temp_msa)
@@ -652,6 +701,7 @@ def save_trajectories(sites, states, times, TF_sequence, df_index, out_file, pro
                     denom = np.sum(tid)
                     traj.append(num/denom)
                 
+                # NOTE: treatment of glycans, edge gaps for proteins is incomplete
                 if np.sum(traj)!=0:
                     ii = df_index.iloc[i]
                     match_states = states[states.T[sites.index(i)]==j]
@@ -659,7 +709,7 @@ def save_trajectories(sites, states, times, TF_sequence, df_index, out_file, pro
                     CpG = 0
                     glycan = 0
                     f.write('%d,%d,%s,%d,%s' % (sites.index(i), i, str(ii.HXB2), nonsyn, PRO[j]))
-                    f.write(',%s,%d,%d' % (','.join([str(ii[c]) for c in cols]), glycan))
+                    f.write(',%s,%d,%d' % (','.join([str(ii[c]) if c!='edge_gap' else str(False) for c in cols]), glycan))
                     f.write(',%s\n' % (','.join(['%.4e' % freq for freq in traj])))
     
         else:
@@ -690,11 +740,16 @@ def save_trajectories(sites, states, times, TF_sequence, df_index, out_file, pro
                     # Check whether mutation is nonsynonymous by inserting TF nucleotide in context
                     nonsyn = get_nonsynonymous(sites, NUC[j], i, eff_HXB2_index, shift, frames, TF_sequence, match_states)
             
+                    # Flag whether variant is an edge gap
+                    edge_gap = False
+                    if NUC[j]=='-' and ii.edge_gap==True:
+                        edge_gap = True
+            
                     # If mutation is in Env, check for modification of N-linked glycosylation site (N-X-S/T motif)
                     glycan = get_glycosylation(sites, NUC[j], i, eff_HXB2_index, shift, TF_sequence, match_states)
                     
                     f.write('%d,%d,%s,%d,%s' % (sites.index(i), i, str(ii.HXB2), nonsyn, NUC[j]))
-                    f.write(',%s,%d' % (','.join([str(ii[c]) for c in cols]), glycan))
+                    f.write(',%s,%d' % (','.join([str(ii[c]) if c!='edge_gap' else str(edge_gap) for c in cols]), glycan))
                     f.write(',%s\n' % (','.join(['%.4e' % freq for freq in traj])))
 
     f.close()
