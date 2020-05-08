@@ -1,7 +1,6 @@
 """
 This Python file contains code for generating plots in:
-    Resolving genetic linkage reveals patterns of selection in HIV-1 evolution
-    bioRxiv
+    Fitness inference from complex evolutionary histories with genetic linkage
     Muhammad S. Sohail
     Raymond H. Y. Louie
     Matthew R. McKay (m.mckay@ust.hk)
@@ -355,7 +354,7 @@ def plot_figure_example_mpl(**pdata):
     #plot.savefig('figures/fig1.png', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 1 done.')
+    print('MPL example done.')
     
     
 def plot_figure_performance(**pdata):
@@ -597,7 +596,7 @@ def plot_figure_performance(**pdata):
         xmin, xmax = -0.6, len(x_err[k])-0.6
         ymin, ymax =  0., 3.
         
-        print('%s\tNRMSE between %.2f and %.2f' % (test_sets[k], np.min(y_err[k]), np.max(y_err[k])))
+        #print('%s\tNRMSE between %.2f and %.2f' % (test_sets[k], np.min(y_err[k]), np.max(y_err[k])))
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
@@ -670,7 +669,7 @@ def plot_figure_performance(**pdata):
         xmin, xmax = -0.6, len(x_t[k])-0.6
         ymin, ymax = -3, 6
         
-        print('%s\ttime between %.2f and %.2f' % (test_sets[k], np.min(y_t[k]), np.max(y_t[k])))
+        #print('%s\ttime between %.2f and %.2f' % (test_sets[k], np.min(y_t[k]), np.max(y_t[k])))
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
@@ -778,7 +777,7 @@ def plot_figure_performance(**pdata):
     plot.savefig('figures/fig2-performance.pdf', **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 2 done.')
+    print('MPL performance done.')
 
 
 def plot_figure_hiv_summary(**pdata):
@@ -1008,7 +1007,7 @@ def plot_figure_hiv_summary(**pdata):
     plot.savefig('figures/fig3-hiv-summary.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 3 done.')
+    print('HIV summary done.')
 
 
 def plot_figure_ch77_kf9(**pdata):
@@ -1341,7 +1340,7 @@ def plot_figure_ch77_kf9(**pdata):
     plot.savefig('figures/%s.pdf' % fig_title, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 3 done.')
+    print('%s done.' % fig_title)
 
 
 def plot_figure_cap256_vrc26(**pdata):
@@ -1633,7 +1632,7 @@ def plot_figure_cap256_vrc26(**pdata):
     plot.savefig('figures/fig6-cap256-vrc26.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 6 done.')
+    print('CAP256-VRC26 done.')
 
 
 def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
@@ -1658,7 +1657,7 @@ def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
     sig_site_real = []
     sig_nuc_idx   = []
 
-    print('%s\nvariant\ts\t(sigma)' % (tag))
+    #print('%s\nvariant\ts\t(sigma)' % (tag))
     for df_iter, df_entry in df_info.iterrows():
         if df_entry.nucleotide!='-':
             s_val   = df_entry.s_MPL
@@ -1671,9 +1670,9 @@ def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
                 sig_site_real.append(df_entry.alignment_index)
                 sig_nuc_idx.append(NUC.index(df_entry.nucleotide) - 1)
 
-    print('')
-    print('%d/%d (%d%%) significant at %.2f sigma' % (n_sig, len(df_info), 100*n_sig/len(df_info), mult))
-    print('')
+#    print('')
+#    print('%d/%d (%d%%) significant at %.2f sigma' % (n_sig, len(df_info), 100*n_sig/len(df_info), mult))
+#    print('')
 
     # Sequence landmarks
 
@@ -2231,7 +2230,7 @@ def plot_supplementary_figure_example_mpl(**pdata):
     plot.savefig('figures/figs1-example-mpl.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure S1 done.')
+    print('MPL supplementary example done.')
     
 
 def plot_supplementary_figure_performance(**pdata):
@@ -2498,7 +2497,7 @@ def plot_supplementary_figure_performance(**pdata):
     plot.savefig('figures/figs2-performance.pdf', **FIGPROPS)
     plot.close(fig)
 
-    print('Figure S2 done.')
+    print('Performance comparison done.')
 
 
 def plot_supplementary_figure_absolute_delta_s(**pdata):
@@ -3035,7 +3034,7 @@ def plot_figure_delta_s_hive(**pdata):
     plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure 4 done.')
+    print('%s done.' % fig_title)
 
 
 def plot_supplementary_figure_delta_s_hive(**pdata):
@@ -3589,7 +3588,7 @@ def plot_supplementary_figure_epitope(**pdata):
     plot.savefig('figures/%s.pdf' % fig_title, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figures S7-S8 done.')
+    print('%s done.' % fig_title)
 
 
 def plot_supplementary_figure_cap256_recombination(**pdata):
@@ -3715,10 +3714,10 @@ def plot_supplementary_figure_cap256_recombination(**pdata):
     ax_hist[-1].text(   0, -4, '6225', **tprops)
     ax_hist[-1].text(2645, -4, '8794', **tprops)
 
-    plot.savefig('figures/figs9-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('figures/figs10-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
-    print('Figure S9 done.')
+    print('CAP256 recombination done.')
 
 
 def plot_hive(ax_hive, tag, **pdata):
