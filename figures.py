@@ -41,10 +41,21 @@ import mplot as mp
 
 NUC = ['-', 'A', 'C', 'G', 'T']
 REF = NUC[0]
+
+## Code Ocean
+#WFS_DIR = '../data/wfsim'
+#HIV_MPL_DIR = '../data/HIV/MPL'
+#SIM_MPL_DIR = '../data/simulation/MPL'
+#HIV_DIR = '../data/HIV'
+#SIM_DIR = '../data/simulation'
+#FIG_DIR = '../results'
+
+# GitHub
 WFS_DIR = 'src/wfsim'
 MPL_DIR = 'src/MPL'
 HIV_DIR = 'data/HIV'
 SIM_DIR = 'data/simulation'
+FIG_DIR = 'figures'
 
 # Standard color scheme
 
@@ -350,8 +361,8 @@ def plot_figure_example_mpl(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/fig1-example-mpl.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
-    #plot.savefig('figures/fig1.png', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/fig1-example-mpl.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    #plot.savefig('%s/fig1.png' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('MPL example done.')
@@ -774,7 +785,7 @@ def plot_figure_performance(**pdata):
 
     # Save figure
 
-    plot.savefig('figures/fig2-performance.pdf', **FIGPROPS)
+    plot.savefig('%s/fig2-performance.pdf' % FIG_DIR, **FIGPROPS)
     plot.close(fig)
 
     print('MPL performance done.')
@@ -1004,7 +1015,7 @@ def plot_figure_hiv_summary(**pdata):
 
     # SAVE FIGURE
     
-    plot.savefig('figures/fig3-hiv-summary.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/fig3-hiv-summary.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('HIV summary done.')
@@ -1337,7 +1348,7 @@ def plot_figure_ch77_kf9(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % fig_title, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('%s done.' % fig_title)
@@ -1491,8 +1502,8 @@ def plot_figure_cap256_vrc26(**pdata):
     sig_s, sig_site_real, sig_nuc_idx, epitope_start, epitope_end = plot_circle(ax_circ, tag, epitope_range, epitope_label, cov_label, label2ddr)
 
 #    # _ SLIDES
-#    plot.savefig('figures/new-slides-cap256-circle.pdf', dpi=1000, **FIGPROPS)
-#    plot.savefig('figures/new-slides-cap256-circle.png', dpi=1000, **FIGPROPS)
+#    plot.savefig('%s/new-slides-cap256-circle.pdf' % FIG_DIR, dpi=1000, **FIGPROPS)
+#    plot.savefig('%s/new-slides-cap256-circle.png' % FIG_DIR, dpi=1000, **FIGPROPS)
 #    plot.close(fig)
 #    w       = 8
 #    fig     = plot.figure(figsize=(w, 2.85))
@@ -1599,8 +1610,8 @@ def plot_figure_cap256_vrc26(**pdata):
     ax_smpl.text(sub_box*sub_dx -  5.5, -6.0, 'Inferred selection\ncoefficient, $\hat{s}$ (%)', clip_on=False, **txtprops)
 
 #    # _ SLIDES
-#    plot.savefig('figures/new-slides-cap256-selection.pdf', dpi=1000, **FIGPROPS)
-#    plot.savefig('figures/new-slides-cap256-selection.png', dpi=1000, **FIGPROPS)
+#    plot.savefig('%s/new-slides-cap256-selection.pdf' % FIG_DIR, dpi=1000, **FIGPROPS)
+#    plot.savefig('%s/new-slides-cap256-selection.png' % FIG_DIR, dpi=1000, **FIGPROPS)
 #    plot.close(fig)
 #    # ^ SLIDES
 
@@ -1629,7 +1640,7 @@ def plot_figure_cap256_vrc26(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/fig6-cap256-vrc26.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/fig6-cap256-vrc26.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('CAP256-VRC26 done.')
@@ -2227,7 +2238,7 @@ def plot_supplementary_figure_example_mpl(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/figs1-example-mpl.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/figs1-example-mpl.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('MPL supplementary example done.')
@@ -2494,7 +2505,7 @@ def plot_supplementary_figure_performance(**pdata):
 
     # Save figure
 
-    plot.savefig('figures/figs2-performance.pdf', **FIGPROPS)
+    plot.savefig('%s/figs2-performance.pdf' % FIG_DIR, **FIGPROPS)
     plot.close(fig)
 
     print('Performance comparison done.')
@@ -2593,7 +2604,7 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta s histogram done.')
@@ -2679,7 +2690,7 @@ def plot_supplementary_figure_delta_s_correlation(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.png' % (fig_title), dpi = 1200, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.png' % (FIG_DIR, fig_title), dpi = 1200, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta s scatter done.')
@@ -2806,7 +2817,7 @@ def plot_supplementary_figure_delta_s_distance(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta s distance distribution done.')
@@ -3031,7 +3042,7 @@ def plot_figure_delta_s_hive(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('%s done.' % fig_title)
@@ -3255,7 +3266,7 @@ def plot_supplementary_figure_delta_s_hive(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Hive plots done.')
@@ -3371,7 +3382,7 @@ def plot_supplementary_figure_max_dx(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % (fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta x distribution done.')
@@ -3585,7 +3596,7 @@ def plot_supplementary_figure_epitope(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('figures/%s.pdf' % fig_title, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('%s done.' % fig_title)
@@ -3714,7 +3725,7 @@ def plot_supplementary_figure_cap256_recombination(**pdata):
     ax_hist[-1].text(   0, -4, '6225', **tprops)
     ax_hist[-1].text(2645, -4, '8794', **tprops)
 
-    plot.savefig('figures/figs10-cap256-recombination.pdf', dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/figs10-cap256-recombination.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('CAP256 recombination done.')
