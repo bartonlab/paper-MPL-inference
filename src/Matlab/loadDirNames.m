@@ -1,5 +1,5 @@
 
-function [dirNameData, dirNameAnalysis, dirNameABC, dirNameApproxWF] = loadDirNames(fileNameContainingDirPath)
+function [dirNameData, dirNameAnalysis, dirNameRandPermFiles, dirNameABC, dirNameApproxWF] = loadDirNames(fileNameContainingDirPath)
 
 % chose the right type of slash
 if(ispc)
@@ -36,11 +36,19 @@ for i = 1:numRows
             if(length(temp) > 17)
                 dirNameAnalysis = temp(17:end);
             else
-                dirNameAnalysis = [dirNameData(1:length(dirNameData)-5) '/Analysis/'];
+                dirNameAnalysis = [dirNameData(1:length(dirNameData)-5) chosenSlash 'Analysis' chosenSlash];
             end
             slashInd = strfind(dirNameAnalysis, notChosenSlash);
             dirNameAnalysis(slashInd) = chosenSlash;
         elseif(count == 3)
+            if(length(temp) > 22)
+                dirNameRandPermFiles = temp(22:end);
+            else
+                dirNameRandPermFiles = '';
+            end
+            slashInd = strfind(dirNameRandPermFiles, notChosenSlash);
+            dirNameRandPermFiles(slashInd) = chosenSlash;
+        elseif(count == 4)
             if(length(temp) > 12)
                 dirNameABC = temp(12:end);
             else
@@ -48,7 +56,7 @@ for i = 1:numRows
             end
             slashInd = strfind(dirNameABC, notChosenSlash);
             dirNameABC(slashInd) = chosenSlash;
-        elseif(count == 4)
+        elseif(count == 5)
             if(length(temp) > 17)
                 dirNameApproxWF = temp(17:end);
             else
@@ -56,7 +64,7 @@ for i = 1:numRows
             end
             slashInd = strfind(dirNameApproxWF, notChosenSlash);
              dirNameApproxWF(slashInd) = chosenSlash;
-        elseif(count == 5)
+        elseif(count == 6)
         end
         count = count + 1;
     end

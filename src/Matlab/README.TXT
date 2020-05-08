@@ -3,7 +3,7 @@
 %==========================================================================
 %
 %
-% This file contains information on running the provided scripts
+% This file contains information on running the provided MATLAB scripts
 % 
 %
 % Dependencies: MATLAB R 2017a 9.2.0 or higher 
@@ -11,6 +11,37 @@
 % MATLAB toolbox required: Global Optimization Toolbox 3.4.2 or higher
 %   
 %
+%----------------------------------------------------
+%
+%
+% Running PlotMPL_recomb_SupFig10_COV
+%-----------------------------------------
+%
+%  1. This script generates Supplementary Figure 3 of the manuscript.
+%     This script can be directly executed and does not require the user to set any paths.
+%
+%
+% AnalysisMPL_recombLoop
+%-----------------------------------------
+%
+%  1. This script analyzes the RAW data and compiles the anaysis result for 
+%     the PlotMPL_recomb_SupFig10_COV.m script.
+%
+%  2. The RAW data is in the ZIP file recombMatlabCode.tar.gz. Unzip to any folder
+%
+%  3. For running AnalysisMPL_recombLoop.m code, set the absolute path of data 
+%     directory and the analysis directory in dirNames_recomb.txt 
+%     (see dirNames_recomb.txt for format and path details)
+%
+%
+%
+%========================================================================
+% Running scripts for comparison with other methods
+%========================================================================
+%
+%  1. Download the data from Zonodo.
+%  2. Set the absolute path of data directory and the analysis directory in
+%     dirName.txt (see dirName.txt for format and path details)
 %
 % Running WFABC
 %-----------------------------------------
@@ -60,7 +91,7 @@
 %
 %  Note: The script AnalysisIM_comp.m requires a platform dependent MEX 
 %        function (func1_v3_mex.mexa64 / func1_v3_mex.mexw64). The current 
-%        version of the code works for
-%            (a)  64-bit Linux system
-%            (b)  64-bit Windows system
+%        version of the code has been tested on
+%            (a)  64-bit Linux system, CENTOS 7, Matlab 2017a or higher
+%            (b)  64-bit Windows system, Windows 10 OS, Matlab 2017a or higher
 %
