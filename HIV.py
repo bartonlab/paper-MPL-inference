@@ -12,6 +12,11 @@ REF = NUC[0]
 CONS_TAG = 'CONSENSUS'
 HXB2_TAG = 'B.FR.1983.HXB2-LAI-IIIB-BRU.K03455.19535'
 TIME_INDEX = 3
+
+## Code Ocean
+#HIV_DIR = '../data/HIV'
+
+# GitHub
 HIV_DIR = 'data/HIV'
 
 
