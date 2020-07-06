@@ -67,6 +67,8 @@ C_NEU    =  LCOLOR   #'#E8E8E8' # LCOLOR
 C_NEU_LT = '#E8E8E8' #'#F0F0F0' #'#d9d9d9'
 C_DEL    = '#3E8DCF' #'#604A7B'
 C_DEL_LT = '#78B4E7' #'#dadaeb'
+C_MPL    = '#FFB511'
+C_SL     = C_NEU
 
 # Plot conventions
 
@@ -427,7 +429,7 @@ def plot_figure_performance(**pdata):
 
     ## set colors and methods list
 
-    hc        = '#FFB511'
+    hc        = C_MPL
     nc        = C_NEU_LT
     hfc       = '#ffcd5e'
     nfc       = '#f0f0f0'
@@ -951,9 +953,6 @@ def plot_figure_hiv_summary(**pdata):
                'ylabel':      'Fold enrichment\nin CD8+ T cell\nescape mutations',
                'logx':        True,
                'theme':       'open' }
-
-    C_MPL = '#FFB511'
-    C_SL  = C_NEU
     
     pprops['colors'] = [C_MPL]
     mp.line(ax=ax_epit, x=[x_enr], y=[y_CD8_MPL], plotprops=lineprops, **pprops)
@@ -978,9 +977,6 @@ def plot_figure_hiv_summary(**pdata):
                'ylabel':      'Fold enrichment\nin reversions\noutside epitopes',
                'logx':        True,
                'theme':       'open' }
-
-    C_MPL = '#FFB511'
-    C_SL  = C_NEU
 
     pprops['colors'] = [C_MPL]
     mp.line(ax=ax_reve, x=[x_enr], y=[y_rev_MPL], plotprops=lineprops, **pprops)
@@ -1016,6 +1012,175 @@ def plot_figure_hiv_summary(**pdata):
     # SAVE FIGURE
     
     plot.savefig('%s/fig3-hiv-summary.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('HIV summary done.')
+    
+    
+def plot_figure_hiv_summary_alternate(**pdata):
+    """
+    Patterns of selection in HIV-1 across patients, including a) the classification of top beneficial mutations,
+    b) enrichment in CD8+ T cell escapes, and c) enrichment in reversions.
+    """
+
+    # unpack data
+    
+    n_poly    = pdata['n_poly']
+    x_enr     = pdata['x_enr']
+    y_CD8_MPL = pdata['y_CD8_MPL']
+    y_CD8_SL  = pdata['y_CD8_SL']
+    y_rev_MPL = pdata['y_rev_MPL']
+    y_rev_SL  = pdata['y_rev_SL']
+    fig_title = pdata['fig_title']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = ONE_FIVE_COLUMN # 1.5*SLIDE_WIDTH
+    hshrink = 0.55 #0.85
+    goldh   = w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+    
+    box_top  = 0.88 #0.93
+    box_circ = dict(left=0.13, right=0.36, bottom=box_top-(0.23/hshrink)+0.06,           top=box_top+0.06)
+    box_epit = dict(left=0.63, right=0.93, bottom=box_top-(0.15/hshrink),                top=box_top)
+    box_reve = dict(left=0.63, right=0.93, bottom=box_top-(0.15/hshrink)-(0.22/hshrink), top=box_top-(0.22/hshrink))
+    
+    gs_circ = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_circ)
+    gs_epit = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_epit)
+    gs_reve = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_reve)
+    ax_circ = plot.subplot(gs_circ[0, 0])
+    ax_epit = plot.subplot(gs_epit[0, 0])
+    ax_reve = plot.subplot(gs_reve[0, 0])
+
+    ## a -- circle plot
+    
+    arc_colors = ['#FF6E1B', '#FF8F28', '#FFD200', '#FFE552', '#969696', '#cccccc', '#00A3AD', '#1295D8']
+    arc_r      = 1
+    arc_props  = dict(center=[0,0], r=arc_r, width=arc_r, lw=AXWIDTH)
+
+    arc_list = [  ]
+    arc_degs = [90]
+    curr_deg =  90
+    for i in range(len(n_poly)):
+        curr_deg += 360 * n_poly[i]
+        arc_degs.append(curr_deg)
+    
+    for i in range(len(n_poly)):
+        arc_list.append(matplotlib.patches.Wedge(theta1=arc_degs[i], theta2=arc_degs[i+1], fc=arc_colors[i], ec='w', **arc_props))
+    
+    arc_list.append(matplotlib.patches.Wedge(theta1=0, theta2=360, fc='none', ec=BKCOLOR, **arc_props))
+    
+    for arc in arc_list:
+        ax_circ.add_artist(arc)
+
+    dr = 0.15
+    label = ['Env exposed (%.1f%%)'                   % (100*n_poly[0]),
+             '±N-linked glycosylation motif (%.1f%%)' % (100*n_poly[1]),
+             'CD8+ T cell escape (%.1f%%)'            % (100*n_poly[2]),
+             'Flanking CD8+ T cell epitope (%.1f%%)'  % (100*n_poly[3]),
+             'Other synonymous (%.1f%%)'              % (100*n_poly[4]),
+             'Synonymous reversion (%.1f%%)'          % (100*n_poly[5]),
+             'Other nonsynonymous reversion (%.1f%%)' % (100*n_poly[6]),
+             'Other nonsynonymous (%.1f%%)'           % (100*n_poly[7])]
+    for i in range(len(n_poly)):
+        if i==len(n_poly)-1:
+            plotprops = dict(lw=AXWIDTH/2, ls='-', clip_on=False)
+            pprops = dict(xlim=[-1.1, 1.1], ylim=[-1.1, 1.1], xticks=[], yticks=[], noaxes=True)
+            mp.plot(type='line', ax=ax_circ, x=[[-999, -999]], y=[[-999, -999]], colors=[BKCOLOR], plotprops=plotprops, **pprops)
+
+    dx = -0.08
+    dy =  0.025/hshrink
+    ax_circ.text(box_circ['left']+dx, box_epit['top']+dy, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    ## b -- enrichment in CD8+ T cell escape mutations
+    
+    lineprops = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
+    fillprops = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
+    
+    pprops = { 'xlim':        [0.01,  0.199],
+               'ylim':        [0, 20],
+               'yticks':      [0, 20],
+               'yminorticks': [5, 10, 15],
+               'xticklabels': [1, 10],
+               'ylabel':      'Fold enrichment\nin CD8+ T cell\nescape mutations',
+               'logx':        True,
+               'theme':       'open' }
+    
+    pprops['colors'] = [C_MPL]
+    mp.line(ax=ax_epit, x=[x_enr], y=[y_CD8_MPL], plotprops=lineprops, **pprops)
+    mp.fill(ax=ax_epit, x=[x_enr], y=[y_CD8_MPL], plotprops=fillprops, **pprops)
+
+    pprops['colors'] = [C_SL]
+    mp.line(             ax=ax_epit, x=[x_enr], y=[y_CD8_SL], plotprops=lineprops, **pprops)
+    mp.plot(type='fill', ax=ax_epit, x=[x_enr], y=[y_CD8_SL], plotprops=fillprops, **pprops)
+
+    dx = -0.10
+    dy =  0.025/hshrink
+    ax_epit.text(box_epit['left']+dx, box_epit['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    ## c -- enrichment in reversions
+
+    pprops = { 'xlim':        [0.01,  0.199],
+               'ylim':        [0, 40],
+               'yticks':      [0, 40],
+               'yminorticks': [10, 20, 30],
+               'xticklabels': [1, 10],
+               'xlabel':      'Fraction of most positively\nselected variants (%)',
+               'ylabel':      'Fold enrichment\nin reversions\noutside epitopes',
+               'logx':        True,
+               'theme':       'open' }
+
+    pprops['colors'] = [C_MPL]
+    mp.line(ax=ax_reve, x=[x_enr], y=[y_rev_MPL], plotprops=lineprops, **pprops)
+    mp.fill(ax=ax_reve, x=[x_enr], y=[y_rev_MPL], plotprops=fillprops, **pprops)
+
+    pprops['colors'] = [C_SL]
+    mp.line(             ax=ax_reve, x=[x_enr], y=[y_rev_SL], plotprops=lineprops, **pprops)
+    mp.plot(type='fill', ax=ax_reve, x=[x_enr], y=[y_rev_SL], plotprops=fillprops, **pprops)
+
+    ax_reve.text(box_reve['left']+dx, box_reve['top']+dy, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    # legend
+
+    invt = ax_circ.transData.inverted()
+    xy1  = invt.transform((  0, 0))
+    xy2  = invt.transform((7.5, 9))
+    xy3  = invt.transform((3.0, 9))
+
+    legend_dx1 = xy1[0]-xy2[0]
+    legend_dx2 = xy1[0]-xy3[0]
+    legend_dy  = xy1[1]-xy2[1]
+
+    enr_legend_x = 5.60 #1.75
+    enr_legend_y = 1.00 #1.65
+    enr_legend_t = ['MPL', 'Independent\nmodel']
+    enr_legend_c = [C_MPL, C_SL]
+    for k in range(len(enr_legend_t)):
+        mp.line(ax=ax_circ, x=[[enr_legend_x + legend_dx1, enr_legend_x + legend_dx2]],
+                y=[[enr_legend_y + (1.5 * k * legend_dy), enr_legend_y + (1.5 * k * legend_dy)]],
+                colors=[enr_legend_c[k]], plotprops=dict(lw=2*SIZELINE, ls='-', clip_on=False))
+        ax_circ.text(enr_legend_x, enr_legend_y + (1.5 * k * legend_dy), enr_legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
+
+    
+    plotprops = DEF_ERRORPROPS.copy()
+    plotprops['alpha'] = 1
+    plotprops['clip_on'] = False
+    
+    circ_legend_x  = -1.75
+    circ_legend_dx = 0.5
+    circ_legend_y  = -1.55
+    for k in range(len(label)):
+        col_num = 0 #k//(1 + len(label)/2)
+        leg_x   = circ_legend_x + col_num * circ_legend_dx
+        leg_y   = circ_legend_y + k * legend_dy - (col_num * len(label) * legend_dy / 2)
+        mp.error(ax=ax_circ, x=[[leg_x + legend_dx1]], y=[[leg_y]], edgecolor=[BKCOLOR], facecolor=[arc_colors[k]], plotprops=plotprops)
+        ax_circ.text(leg_x, leg_y, label[k], ha='left', va='center', **DEF_LABELPROPS)
+
+    # SAVE FIGURE
+    
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('HIV summary done.')
@@ -1057,23 +1222,25 @@ def plot_figure_ch77_kf9(**pdata):
     var_sind = []
     var_traj = []
     var_idxs = []
-    curr_HXB2 = 8988
-    curr_aln  = 4015
-    curr_char = 'a'
+#    curr_HXB2 = 8988
+#    curr_aln  = 4015
+#    curr_char = 'a'
     for df_iter, df_entry in df_esc.iterrows():
         if df_entry.nucleotide=='-':
             continue
-        if pd.notnull(df_entry.HXB2_index):
-            var_tag.append(str(int(df_entry.HXB2_index))+df_entry.nucleotide)
-            var_idxs.append([int(df_entry.polymorphic_index), str(df_entry.nucleotide)])
-            curr_HXB2 = int(df_entry.HXB2_index)
-            curr_aln  = int(df_entry.alignment_index)
-        else:
-            if int(df_entry.alignment_index)!=curr_aln:
-                curr_aln  = int(df_entry.alignment_index)
-                curr_char = chr(ord(curr_char) + 1)
-            var_tag.append(str(int(curr_HXB2))+curr_char+df_entry.nucleotide)
-            var_idxs.append([int(df_entry.polymorphic_index), str(df_entry.nucleotide)])
+        var_tag.append(str(df_entry.HXB2_index)+df_entry.nucleotide)
+        var_idxs.append([int(df_entry.polymorphic_index), str(df_entry.nucleotide)])
+#        if pd.notnull(df_entry.HXB2_index):
+#            var_tag.append(str(int(df_entry.HXB2_index))+df_entry.nucleotide)
+#            var_idxs.append([int(df_entry.polymorphic_index), str(df_entry.nucleotide)])
+#            curr_HXB2 = int(df_entry.HXB2_index)
+#            curr_aln  = int(df_entry.alignment_index)
+#        else:
+#            if int(df_entry.alignment_index)!=curr_aln:
+#                curr_aln  = int(df_entry.alignment_index)
+#                curr_char = chr(ord(curr_char) + 1)
+#            var_tag.append(str(int(curr_HXB2))+curr_char+df_entry.nucleotide)
+#            var_idxs.append([int(df_entry.polymorphic_index), str(df_entry.nucleotide)])
         var_traj.append([df_entry['f_at_%d' % t] for t in times])
         var_smpl.append(df_entry.s_MPL)
         var_sind.append(df_entry.s_SL)
@@ -1103,10 +1270,11 @@ def plot_figure_ch77_kf9(**pdata):
     inf_tag = []
     for i in range(len(inf_idxs)):
         temp_df = df_poly[(df_poly.polymorphic_index==inf_idxs[i][0]) & (df_poly.nucleotide==inf_idxs[i][1])]
-        if pd.notnull(temp_df.iloc[0].HXB2_index):
-            inf_tag.append(str(int(temp_df.iloc[0].HXB2_index))+str(temp_df.iloc[0].nucleotide))
-        else:
-            inf_tag.append('8865yA') # hard-coded insertion in DG9 epitope
+        inf_tag.append(str(temp_df.iloc[0].HXB2_index)+str(temp_df.iloc[0].nucleotide))
+#        if pd.notnull(temp_df.iloc[0].HXB2_index):
+#            inf_tag.append(str(int(temp_df.iloc[0].HXB2_index))+str(temp_df.iloc[0].nucleotide))
+#        else:
+#            inf_tag.append('8865yA') # hard-coded insertion in DG9 epitope
 
     for i in range(len(ds_matrix)):
         print('%s' % ('\t'.join(['%.4f' % ds for ds in ds_matrix[i]])))
@@ -1369,12 +1537,14 @@ def plot_figure_cap256_vrc26(**pdata):
     
     df_index = pd.read_csv('%s/processed/%s-SU-%s-index.csv' % (HIV_DIR, patient, region), comment='#', memory_map=True)
     df_poly  = pd.read_csv('%s/analysis/%s-poly.csv' % (HIV_DIR, tag), comment='#', memory_map=True)
-    df_sub   = df_poly[(df_poly.nucleotide!=df_poly.TF) & (df_poly.HXB2_index>=6702) & (df_poly.HXB2_index<=6737)]
+    df_sub   = df_poly[df_poly.HXB2_index.str.isnumeric()]
+    df_sub   = df_sub[(df_sub.nucleotide!=df_sub.TF) & (df_sub.HXB2_index.astype('int32')>=6702) & (df_sub.HXB2_index.astype('int32')<=6737)]
+    #df_sub   = df_poly[(df_poly.nucleotide!=df_poly.TF) & (df_poly.HXB2_index>=6702) & (df_poly.HXB2_index<=6737)]
 
     times = [int(i.split('_')[-1]) for i in df_sub.columns if 'f_at_' in i]
     times.sort()
     
-    c_vals   = ['#FFB511', C_NEU]
+    c_vals   = [C_MPL, C_NEU]
     var_c    = []
     var_tag  = []
     var_smpl = []
@@ -1401,12 +1571,12 @@ def plot_figure_cap256_vrc26(**pdata):
           
     # print special selection coefficients
     print('variant\ts_MPL')
-    print('6709C\t%.3f' % (df_poly[(df_poly.HXB2_index==6709) & (df_poly.nucleotide=='C')].s_MPL))
-    print('6717T\t%.3f' % (df_poly[(df_poly.HXB2_index==6717) & (df_poly.nucleotide=='T')].s_MPL))
-    print('6730C\t%.3f' % (df_poly[(df_poly.HXB2_index==6730) & (df_poly.nucleotide=='C')].s_MPL))
-    print('6730G\t%.3f' % (df_poly[(df_poly.HXB2_index==6730) & (df_poly.nucleotide=='G')].s_MPL))
-    print('6730T\t%.3f' % (df_poly[(df_poly.HXB2_index==6730) & (df_poly.nucleotide=='T')].s_MPL))
-    print('6731T\t%.3f' % (df_poly[(df_poly.HXB2_index==6731) & (df_poly.nucleotide=='T')].s_MPL))
+    print('6709C\t%.3f' % (df_sub[(df_sub.HXB2_index.astype('int32')==6709) & (df_sub.nucleotide=='C')].s_MPL))
+    print('6717T\t%.3f' % (df_sub[(df_sub.HXB2_index.astype('int32')==6717) & (df_sub.nucleotide=='T')].s_MPL))
+    print('6730C\t%.3f' % (df_sub[(df_sub.HXB2_index.astype('int32')==6730) & (df_sub.nucleotide=='C')].s_MPL))
+    print('6730G\t%.3f' % (df_sub[(df_sub.HXB2_index.astype('int32')==6730) & (df_sub.nucleotide=='G')].s_MPL))
+    print('6730T\t%.3f' % (df_sub[(df_sub.HXB2_index.astype('int32')==6730) & (df_sub.nucleotide=='T')].s_MPL))
+    print('6731T\t%.3f' % (df_sub[(df_sub.HXB2_index.astype('int32')==6731) & (df_sub.nucleotide=='T')].s_MPL))
     print('')
 
     # PLOT FIGURE
@@ -1475,7 +1645,7 @@ def plot_figure_cap256_vrc26(**pdata):
     traj_legend_y =  0.95
     traj_legend_d = -0.05
     traj_legend_t = ['Superinfecting\nvariant', 'Other']
-    traj_legend_c = ['#FFB511', C_NEU]
+    traj_legend_c = [C_MPL, C_NEU]
     for k in range(len(traj_legend_t)):
         mp.line(ax=ax_traj, x=[[traj_legend_x + legend_dx1, traj_legend_x + legend_dx2]],
                 y=[[traj_legend_y + (1.5 * k * legend_dy), traj_legend_y + (1.5 * k * legend_dy)]],
@@ -1696,16 +1866,20 @@ def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
     landmark_end   = []
     landmark_label = []
 
-    idx = df_index.iloc[0].HXB2
+    idx = int(df_index.iloc[0].HXB2)
     for i in range(len(df_index)):
-        if pd.notnull(df_index.iloc[i].HXB2):
-            idx = df_index.iloc[i].HXB2
+        try:
+            idx = int(df_index.iloc[i].HXB2)
+        except:
+            pass
+#        if pd.notnull(df_index.iloc[i].HXB2):
+#            idx = df_index.iloc[i].HXB2
         for j in range(len(seq_range)):
             if idx==seq_range[j][0] or (i==0 and idx>seq_range[j][0] and idx<seq_range[j][1]):
                 landmark_start.append(i)
                 landmark_end.append(i)
                 landmark_label.append(seq_label[j])
-            if idx==seq_range[j][1] or (i==len(df_index)-1 and idx>seq_range[j][0] and df_index.iloc[0].HXB2<=seq_range[j][0]
+            if idx==seq_range[j][1] or (i==len(df_index)-1 and idx>seq_range[j][0] and int(df_index.iloc[0].HXB2)<=seq_range[j][0]
                                         and idx<seq_range[j][1]):
                 landmark_end[landmark_label.index(seq_label[j])] = i
 
@@ -1720,10 +1894,14 @@ def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
     epitope_sites = []
     site2epitope  = {}
 
-    idx = df_index.iloc[0].HXB2
+    idx = int(df_index.iloc[0].HXB2)
     for i in range(len(df_index)):
-        if pd.notnull(df_index.iloc[i].HXB2):
-            idx = df_index.iloc[i].HXB2
+        try:
+            idx = int(df_index.iloc[i].HXB2)
+        except:
+            pass
+#        if pd.notnull(df_index.iloc[i].HXB2):
+#            idx = df_index.iloc[i].HXB2
         for j in range(len(seq_range)):
             if idx==seq_range[j][0] or (i==0 and idx>seq_range[j][0] and idx<seq_range[j][1]):
                 epitope_start.append(i)
@@ -1731,7 +1909,7 @@ def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
                 epitope_label.append(seq_label[j])
                 if seq_label[j]=='DG9':
                     epitope_start[-1] -= 9 # account for DEP insertion
-            if idx==seq_range[j][1] or (i==len(df_index)-1 and idx>seq_range[j][0] and df_index.iloc[0].HXB2<=seq_range[j][0]
+            if idx==seq_range[j][1] or (i==len(df_index)-1 and idx>seq_range[j][0] and int(df_index.iloc[0].HXB2)<=seq_range[j][0]
                                         and idx<seq_range[j][1]):
                 epitope_end[epitope_label.index(seq_label[j])] = i
                 iix = epitope_label.index(seq_label[j])
@@ -2297,7 +2475,7 @@ def plot_supplementary_figure_performance(**pdata):
     
     ## set colors and methods list
 
-    hc        = '#FFB511'
+    hc        = C_MPL
     nc        = C_NEU_LT
     hfc       = '#ffcd5e'
     nfc       = '#f0f0f0'
@@ -2519,6 +2697,7 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
     # unpack data
     
     patient_list = pdata['patient_list']
+    label_list   = pdata['label_list']
     region_list  = pdata['region_list']
     ds_values    = pdata['ds_values']
     fig_title    = pdata['fig_title']
@@ -2574,7 +2753,7 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
                    'xticklabels': ['',  '',  '',  '',  ''],
                    'ylim':        [0, 4],
                    'yticks':      [],
-                   'colors':      ['#FFB511'],
+                   'colors':      [C_MPL],
                    'plotprops':   hist_props,
                    'axoffset':    0.1,
                    'theme':       'open',
@@ -2594,7 +2773,7 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
         mp.plot(type='bar', ax=ax, x=[bins+(bin_ds/2)], y=[hist_y], **pprops)
         
         tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
-        ax.text(0.20, 3.25, patient_list[k].lower() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
+        ax.text(0.20, 3.25, label_list[k].upper() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
         
         if j_idx<4:
             j_idx += 1
@@ -2656,7 +2835,7 @@ def plot_supplementary_figure_delta_s_correlation(**pdata):
                    'ylim':        [-0.05, 0.05],
                    'yticks':      [],
                    'yticklabels': [],
-                   'colors':      ['#FFB511'],
+                   'colors':      [C_MPL],
                    'plotprops':   plotprops,
                    'axoffset':    0.1,
                    'theme':       'open',
@@ -2831,6 +3010,7 @@ def plot_figure_delta_s_hive(**pdata):
     # unpack data
     
     patient_list = pdata['patient_list']
+    label_list   = pdata['label_list']
     region_list  = pdata['region_list']
     fig_title    = pdata['fig_title']
 
@@ -2862,7 +3042,7 @@ def plot_figure_delta_s_hive(**pdata):
         
         tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
         if i_idx==0:
-            ax.text(0, 0.70, patient_list[k].lower(), **tprops)
+            ax.text(0, 0.70, label_list[k].upper(), **tprops)
         if j_idx==0:
             ax.text(-1.15, -0.10, r'$%d\prime$' % int(region_list[k]), **tprops)
 
@@ -3056,6 +3236,7 @@ def plot_supplementary_figure_delta_s_hive(**pdata):
     # unpack data
     
     patient_list = pdata['patient_list']
+    label_list   = pdata['label_list']
     region_list  = pdata['region_list']
     fig_title    = pdata['fig_title']
 
@@ -3086,7 +3267,7 @@ def plot_supplementary_figure_delta_s_hive(**pdata):
         plot_hive(ax, patient_list[k]+'-'+region_list[k])
         
         tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=0, clip_on=False)
-        ax.text(0, -1.15, patient_list[k].lower() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
+        ax.text(0, -1.15, label_list[k].upper() + ' ' + (r'$%d\prime$' % int(region_list[k])), **tprops)
 
         if i_idx<4 and j_idx<4:
             j_idx += 1
@@ -3337,7 +3518,7 @@ def plot_supplementary_figure_max_dx(**pdata):
                'yticklabels': ['$10^{-4}$', '$10^{-3}$', '$10^{-2}$', '$10^{-1}$', '1'],
                'xlabel':      'Maximum observed change in variant frequency per day (%)',
                'ylabel':      'Frequency',
-               #'colors':      ['#FFB511'],
+               #'colors':      [C_MPL],
                'plotprops':   lineprops,
                'axoffset':    0.1,
                'theme':       'open' }
@@ -3423,20 +3604,21 @@ def plot_supplementary_figure_epitope(**pdata):
     var_sind = []
     var_traj = []
     curr_HXB2 = 8988
-    curr_aln  = 4015
-    curr_char = 'a'
+    #curr_aln  = 4015
+    #curr_char = 'a'
     for df_iter, df_entry in df_esc.iterrows():
         if df_entry.nucleotide=='-':
             continue
-        if pd.notnull(df_entry.HXB2_index):
-            var_tag.append(str(int(df_entry.HXB2_index))+df_entry.nucleotide)
-            curr_HXB2 = int(df_entry.HXB2_index)
-            curr_aln  = int(df_entry.alignment_index)
-        else:
-            if int(df_entry.alignment_index)!=curr_aln:
-                curr_aln  = int(df_entry.alignment_index)
-                curr_char = chr(ord(curr_char) + 1)
-            var_tag.append(str(int(curr_HXB2))+curr_char+df_entry.nucleotide)
+        var_tag.append(str(df_entry.HXB2_index)+df_entry.nucleotide)
+#        if pd.notnull(df_entry.HXB2_index):
+#            var_tag.append(str(int(df_entry.HXB2_index))+df_entry.nucleotide)
+#            curr_HXB2 = int(df_entry.HXB2_index)
+#            curr_aln  = int(df_entry.alignment_index)
+#        else:
+#            if int(df_entry.alignment_index)!=curr_aln:
+#                curr_aln  = int(df_entry.alignment_index)
+#                curr_char = chr(ord(curr_char) + 1)
+#            var_tag.append(str(int(curr_HXB2))+curr_char+df_entry.nucleotide)
         var_traj.append([df_entry['f_at_%d' % t] for t in times])
         var_smpl.append(df_entry.s_MPL)
         var_sind.append(df_entry.s_SL)
@@ -3869,3 +4051,99 @@ def plot_hive(ax_hive, tag, **pdata):
     mp.line(ax=ax_hive, x=line_x, y=line_y, colors=[BKCOLOR for i in range(len(line_x))], plotprops=plotprops)
 
     mp.plot(type='circos', ax=ax_hive, x=circ_x, y=circ_y, **pprops)
+    
+    
+def plot_supplementary_figure_s_conditions(**pdata):
+    """
+    Scatter plot of selection coefficients inferred using different conditions for
+    data processing.
+    """
+    
+    # Read in data
+
+    columns = pdata['columns']
+    labels  = pdata['labels']
+    
+    df = pd.read_csv('%s/analysis/total-selection-merged.csv' % (HIV_DIR), comment='#', memory_map=True)
+
+    # Define plot
+
+    w     = DOUBLE_COLUMN
+    goldh = w
+
+    fig = plot.figure(figsize=(w, goldh))
+    box = dict(left=0.08, right=0.99, bottom=0.08, top=0.99)
+    gs  = gridspec.GridSpec(len(columns)-1, len(columns)-1, **box)
+    ax  = [[0 for j in range(len(columns)-1)] for i in range(len(columns)-1)]
+        
+    for i in range(len(columns)):
+        for j in range(i+1,len(columns)):
+            ax[i][j-1] = plot.subplot(gs[j-1, i])
+
+    # MAKE SUBPLOTS
+
+    scatterprops = dict(lw=0, s=SMALLSIZEDOT*1.0, marker='o', alpha=0.2, c=C_MPL)
+
+    pprops = { 'xlim':  [-0.10, 0.15],
+               'ylim':  [-0.10, 0.15],
+               'xticks': [],
+               'yticks': [],
+               'theme': 'open',
+               #'hide':  ['left', 'bottom'],
+               'plotprops': scatterprops }
+
+    print('choice 1\t\tchoice 2\t\tR\tR^2\tp')
+    
+    pearson_r2s = []
+    spearman_rs = []
+    diffs = []
+    abs_s = []
+
+    for i in range(len(columns)):
+        for j in range(i+1,len(columns)):
+        
+            tempprops = deepcopy(pprops)
+            if j==len(columns)-1:
+                tempprops['xlabel'] = labels[i]
+                tempprops['xticks'] = [-0.10, 0, 0.10]
+                tempprops['xticklabels'] = [-10, 0, 10]
+            if i==0:
+                tempprops['ylabel'] = labels[j]
+                tempprops['yticks'] = [-0.10, 0, 0.10]
+                tempprops['yticklabels'] = [-10, 0, 10]
+            
+            df_sub = df[['variant', columns[j], columns[i]]].dropna()
+            x = df_sub[columns[j]]
+            y = df_sub[columns[i]]
+            diffs += list(np.fabs(x - y))
+            abs_s += list(np.fabs(x)) + list(np.fabs(y))
+            
+#            # Identify large differences
+#            df_diff = df_sub[np.fabs(df_sub[columns[j]]-df_sub[columns[i]])>0.03]
+#            for df_iter, df_entry in df_diff.iterrows():
+#                print('\t%s\t%s %.2f\t%s %.2f' % (df_entry.variant, columns[i], df_entry[columns[i]], columns[j], df_entry[columns[j]]))
+            
+            r_value, p_value = st.pearsonr(x, y)
+            pearson_r2s.append(r_value**2)
+            print('%s\t\t%s\t\t%.2f\t%.2f\t%.2e' % (columns[i], columns[j], r_value, r_value**2, p_value))
+            
+            r_value, p_value = st.spearmanr(x, y)
+            spearman_rs.append(r_value)
+            
+            mp.plot(type='scatter', ax=ax[i][j-1], x=[x], y=[y], **tempprops)
+            
+    # Aggregate correlation statistics
+    
+    print('')
+    print('metric\t\tminimum\t\tmaximum\t\tmean\t\tmedian')
+    print('Pearson R2\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f' % (np.min(pearson_r2s), np.max(pearson_r2s), np.mean(pearson_r2s), np.median(pearson_r2s)))
+    print('Spearman r\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f' % (np.min(spearman_rs), np.max(spearman_rs), np.mean(spearman_rs), np.median(spearman_rs)))
+    print('|Delta s| \t%.2f\t\t%.2f\t\t%.2e\t%.2e' % (np.min(diffs), np.max(diffs), np.mean(diffs), np.median(diffs)))
+    print('|s|       \t%.2f\t\t%.2f\t\t%.2e\t%.2e' % (np.min(abs_s), np.max(abs_s), np.mean(abs_s), np.median(abs_s)))
+            
+    # Save data
+
+    plot.savefig('%s/figs11-s-conditions.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('\nSelection coefficient comparison done.')

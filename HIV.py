@@ -12,6 +12,7 @@ REF = NUC[0]
 CONS_TAG = 'CONSENSUS'
 HXB2_TAG = 'B.FR.1983.HXB2-LAI-IIIB-BRU.K03455.19535'
 TIME_INDEX = 3
+ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+++++++++++++++++++++++++++'
 
 ## Code Ocean
 #HIV_DIR = '../data/HIV'
@@ -249,13 +250,13 @@ def filter_excess_gaps(msa, tag, sequence_max_gaps, site_max_gaps, verbose=True)
     # Drop sites that have too many gaps
     kept_indices = []
     for i in range(len(HXB2_seq)):
-        if HXB2_seq[i]!='-' or np.sum(temp_msa[:,i]!='-')/len(temp_msa)>site_max_gaps:
+        if HXB2_seq[i]!='-' or np.sum(temp_msa[:,i]=='-')/len(temp_msa)<site_max_gaps:
             kept_indices.append(i)
     temp_msa = np.array([HXB2_seq[kept_indices], cons_seq[kept_indices]] + [s[kept_indices] for s in temp_msa])
     temp_tag = [HXB2_TAG, CONS_TAG] + temp_tag
     if verbose:
         print('\tremoved %d of %d sites with >%d%% gaps' %
-              (len(msa[0])-len(kept_indices), len(msa[0]), (1-site_max_gaps)*100))
+              (len(msa[0])-len(kept_indices), len(msa[0]), site_max_gaps*100))
 
     return temp_msa, temp_tag
 
@@ -435,17 +436,32 @@ def create_index(msa, tag, TF_seq, cons_seq, HXB2_seq, HXB2_start, min_seqs, max
     temp_msa, temp_tag, times = get_times(msa, tag, sort=True)
     u_times = np.unique(times)
     t_count = [np.sum(times==t) for t in u_times]
-    #print('\t'.join([str(int(i)) for i in u_times]))
-    #print('\t'.join([str(int(i)) for i in t_count]))
-    t_max = 0
+    
+#    print('\t'.join([str(int(i)) for i in u_times]))
+#    print('\t'.join([str(int(i)) for i in t_count]))
+#    t_max = 0
+#    for i in range(1, len(t_count)):
+#        if t_count[i]<min_seqs or u_times[i]-u_times[i-1]>max_dt:
+#            break
+#        else:
+#            t_max += 1
+#    t_max = u_times[t_max]
+#    temp_msa = temp_msa[times<=t_max]
+#    temp_tag = temp_tag[times<=t_max]
+
+    t_allowed = [u_times[0]]
+    t_last    = u_times[0]
     for i in range(1, len(t_count)):
-        if t_count[i]<min_seqs or u_times[i]-u_times[i-1]>max_dt:
+        if t_count[i]<min_seqs:
+            continue
+        elif u_times[i]-t_last>max_dt:
             break
         else:
-            t_max += 1
-    t_max = u_times[t_max]
-    temp_msa = temp_msa[times<=t_max]
-    temp_tag = temp_tag[times<=t_max]
+            t_allowed.append(u_times[i])
+            t_last = u_times[i]
+    t_max    = t_allowed[-1]
+    temp_msa = temp_msa[np.isin(times, t_allowed)]
+    temp_tag = temp_tag[np.isin(times, t_allowed)]
     
     HXB2_index = HXB2_start
     polymorphic_index = 0
@@ -464,6 +480,10 @@ def create_index(msa, tag, TF_seq, cons_seq, HXB2_seq, HXB2_start, min_seqs, max
         if HXB2_seq[i]!='-':
             HXB2_str = '%d' % HXB2_index
             HXB2_index += 1
+            HXB2_alpha  = 0
+        else:
+            HXB2_str = '%d%s' % (HXB2_index-1, ALPHABET[HXB2_alpha])
+            HXB2_alpha += 1
         
         # Flag epitope regions
         epitope_str = ''
@@ -603,6 +623,45 @@ def get_nonsynonymous(polymorphic_sites, nuc, i, i_HXB2, shift, frames, TF_seque
                 ns += 1
 
     return ns
+    
+
+def get_nonsynonymous_alternate(polymorphic_sites, nuc, i, i_HXB2, shift, frames, TF_sequence, match_states, verbose=True):
+    """ Return number of reading frames in which the input nucleotide is nonsynonymous in context, compared to T/F. """
+    
+    ns        = [-1, -1, -1]
+    positions = [-1, -1, -1]
+    for fr in frames:
+        ns[fr-1] = 0
+        
+        pos = int((i_HXB2+shift-fr)%3) # position of the nucleotide in the reading frame
+        positions[fr-1] = pos
+        TF_codon = TF_sequence[i-pos:i-pos+3]
+        
+        if len(TF_codon)<3 and verbose:
+            print('\tmutant at site %d in codon that does not terminate in alignment, assuming syn' % i)
+        
+        else:
+            mut_codon = [a for a in TF_codon]
+            mut_codon[pos] = nuc
+            replace_indices = [k for k in range(3) if (k+i-pos) in polymorphic_sites and k!=pos]
+            
+            # If any other sites in the codon are polymorphic, consider mutation in context
+            if len(replace_indices)>0:
+                is_ns = False
+                for s in match_states:
+                    TF_codon = TF_sequence[i-pos:i-pos+3]
+                    for k in replace_indices:
+                        mut_codon[k] = NUC[s[polymorphic_sites.index(k+i-pos)]]
+                        TF_codon[k] = NUC[s[polymorphic_sites.index(k+i-pos)]]
+                    if codon2aa(mut_codon)!=codon2aa(TF_codon):
+                        is_ns = True
+                if is_ns:
+                    ns[fr-1] = 1
+        
+            elif codon2aa(mut_codon)!=codon2aa(TF_codon):
+                ns[fr-1] = 1
+
+    return ns, positions
 
 
 def get_glycosylation(polymorphic_sites, nuc, i, i_HXB2, shift, TF_sequence, match_states):
@@ -734,13 +793,13 @@ def save_trajectories(sites, states, times, TF_sequence, df_index, out_file, pro
                     eff_HXB2_index = 0
                     shift = 0
                     frames = []
-                    if pd.notnull(ii.HXB2):
+                    try:
                         eff_HXB2_index = int(ii.HXB2)
                         frames = index2frame(eff_HXB2_index)
-                    else:
-                        eff_HXB2_index, shift = get_effective_HXB2_index(i, df_index)
+                    except:
+                        eff_HXB2_index = int(ii.HXB2[:-1])
+                        shift = ALPHABET.index(ii.HXB2[-1]) + 1
                         frames = index2frame(eff_HXB2_index)
-                        eff_HXB2_index -= 1
                     
                     # Check whether mutation is nonsynonymous by inserting TF nucleotide in context
                     nonsyn = get_nonsynonymous(sites, NUC[j], i, eff_HXB2_index, shift, frames, TF_sequence, match_states)
@@ -754,6 +813,86 @@ def save_trajectories(sites, states, times, TF_sequence, df_index, out_file, pro
                     glycan = get_glycosylation(sites, NUC[j], i, eff_HXB2_index, shift, TF_sequence, match_states)
                     
                     f.write('%d,%d,%s,%d,%s' % (sites.index(i), i, str(ii.HXB2), nonsyn, NUC[j]))
+                    f.write(',%s,%d' % (','.join([str(ii[c]) if c!='edge_gap' else str(edge_gap) for c in cols]), glycan))
+                    f.write(',%s\n' % (','.join(['%.4e' % freq for freq in traj])))
+
+    f.close()
+    
+    
+def save_trajectories_alternate(sites, states, times, TF_sequence, df_index, out_file, protein=False):
+    """ Save allele frequency trajectories and supplementary information. """
+
+    index_cols = ['alignment', 'polymorphic', 'HXB2']
+    cols = [i for i in list(df_index) if i not in index_cols]
+    
+    f = open(out_file, 'w')
+    f.write('polymorphic_index,alignment_index,HXB2_index,nucleotide,frame_1,pos_1,ns_1,frame_2,pos_2,ns_2,frame_3,pos_3,ns_3')
+    f.write(',%s,glycan' % (','.join(cols)))
+    f.write(',%s\n' % (','.join(['f_at_%d' % t for t in np.unique(times)])))
+    
+    for i in sites:
+        if protein:
+            for j in range(len(PRO)):
+                traj = []
+                for t in np.unique(times):
+                    tid = times==t
+                    num = np.sum(states[tid].T[sites.index(i)]==j)
+                    denom = np.sum(tid)
+                    traj.append(num/denom)
+                
+                # NOTE: treatment of glycans, edge gaps for proteins is incomplete
+                if np.sum(traj)!=0:
+                    ii = df_index.iloc[i]
+                    match_states = states[states.T[sites.index(i)]==j]
+                    nonsyn = True
+                    CpG = 0
+                    glycan = 0
+                    f.write('%d,%d,%s,%d,%s' % (sites.index(i), i, str(ii.HXB2), nonsyn, PRO[j]))
+                    f.write(',%s,%d,%d' % (','.join([str(ii[c]) if c!='edge_gap' else str(False) for c in cols]), glycan))
+                    f.write(',%s\n' % (','.join(['%.4e' % freq for freq in traj])))
+    
+        else:
+            for j in range(len(NUC)):
+                traj = []
+                for t in np.unique(times):
+                    tid = times==t
+                    num = np.sum(states[tid].T[sites.index(i)]==j)
+                    denom = np.sum(tid)
+                    traj.append(num/denom)
+                
+                if np.sum(traj)!=0:
+                    ii = df_index.iloc[i]
+                    match_states = states[states.T[sites.index(i)]==j]
+                    
+                    # Get effective HXB2 index to determine open reading frames
+                    eff_HXB2_index = 0
+                    shift = 0
+                    frames = []
+                    
+                    try:
+                        eff_HXB2_index = int(ii.HXB2)
+                        frames = index2frame(eff_HXB2_index)
+                    except:
+                        eff_HXB2_index = int(ii.HXB2[:-1])
+                        shift = ALPHABET.index(ii.HXB2[-1]) + 1
+                        frames = index2frame(eff_HXB2_index)
+                    
+                    # Check whether mutation is nonsynonymous by inserting TF nucleotide in context
+                    nonsyn, positions = get_nonsynonymous_alternate(sites, NUC[j], i, eff_HXB2_index, shift, frames, TF_sequence, match_states)
+            
+                    # Flag whether variant is an edge gap
+                    edge_gap = False
+                    if NUC[j]=='-' and ii.edge_gap==True:
+                        edge_gap = True
+            
+                    # If mutation is in Env, check for modification of N-linked glycosylation site (N-X-S/T motif)
+                    glycan = get_glycosylation(sites, NUC[j], i, eff_HXB2_index, shift, TF_sequence, match_states)
+                    
+                    f.write('%d,%d,%s,%s' % (sites.index(i), i, str(ii.HXB2), NUC[j]))
+                    
+                    for k in range(3):
+                        f.write(',%d,%d,%d' % (k+1 in frames, positions[k], nonsyn[k]))
+                    
                     f.write(',%s,%d' % (','.join([str(ii[c]) if c!='edge_gap' else str(edge_gap) for c in cols]), glycan))
                     f.write(',%s\n' % (','.join(['%.4e' % freq for freq in traj])))
 
@@ -781,13 +920,13 @@ def get_baseline(TF_sequence, df_index, df_poly):
                 eff_HXB2_index = 0
                 shift = 0
                 frames = []
-                if pd.notnull(ii.HXB2):
+                try:
                     eff_HXB2_index = int(ii.HXB2)
                     frames = index2frame(eff_HXB2_index)
-                else:
-                    eff_HXB2_index, shift = get_effective_HXB2_index(i, df_index)
+                except:
+                    eff_HXB2_index = int(ii.HXB2[:-1])
+                    shift = ALPHABET.index(ii.HXB2[-1]) + 1
                     frames = index2frame(eff_HXB2_index)
-                    eff_HXB2_index -= 1
             
                 # Check whether mutation is nonsynonymous by inserting mutation in TF background
                 is_ns = False

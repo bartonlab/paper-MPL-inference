@@ -11,7 +11,7 @@ slides/
 src/MPL/.dirstamp
 src/MPL/.deps/
 src/MPL/*.o
-src/MPL/test/
+src/MPL/jobs/
 VRC26/
 dms-analysis.ipynb
 figures-bkup.py
