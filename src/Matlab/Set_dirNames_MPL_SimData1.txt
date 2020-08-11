@@ -1,0 +1,12 @@
+% This file specifies the path to the directory that will contain the
+% following three folders:  
+% 1. Sim_Data (Data folder)
+% 2. Sim_Analysis (Analysis folder)
+% 3. Sim_Results (Results folder)
+% the syntax is /dir1/dir2/dir3/ 
+% for windows based system, the code will automatically reformat the path
+%
+% -------------------------------------------------------------------------
+dirNameData=/data/simulation/Heterogeneous/Sim_Data/
+dirNameAnalysis=/data/simulation/Heterogeneous/Sim_Analysis/
+dirNameResults=/data/simulation/Heterogeneous/Sim_Results/

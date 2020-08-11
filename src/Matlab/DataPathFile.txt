@@ -1,0 +1,9 @@
+% This file specifies directory paths to directores containing the patient
+% files (*-poly.csv) and integrated covarianc evalues
+% (covariance-*-poly-seq2state.dat) 
+% the syntax is /dir1/dir2/dir3/ 
+% for windows based system, the code will automatically reformat the path
+%
+% -------------------------------------------------------------------------
+dirNamePolyFiles=/local1/staff/ee/mssohail/Matlab Codes 2/MPL Covariance/covariances/
+dirNameIntCovFiles=/local1/staff/ee/mssohail/Matlab Codes 2/MPL Covariance/covariances/integrated-covariances/
