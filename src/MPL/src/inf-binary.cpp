@@ -365,6 +365,9 @@ void processStandard(const IntVVector &sequences, // vector of sequence vectors
     for (int k=1;k<sequences.size();k++) {
     
         computeAlleleFrequencies(sequences[k], counts[k], q, p1, p2);
+//        interpolateFrequencies(lastp1, lastp2, p1, p2, 0.5, xp1, xp2);
+//        updateCovariance(times[k] - times[k-1], xp1, xp2, totalCov);
+//        updateMu(times[k] - times[k-1], muMatrix, xp1, totalMu);
         updateCovarianceIntegrate(times[k] - times[k-1], lastp1, lastp2, p1, p2, totalCov);
         updateMuIntegrate(times[k] - times[k-1], muMatrix, lastp1, p1, totalMu);
         

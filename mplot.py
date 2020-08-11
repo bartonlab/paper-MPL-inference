@@ -1006,8 +1006,8 @@ def setappearance(**pdata):
     #if 'logx' in pdata and pdata['logx']: pdata['ax'].set_xscale('log')
     #if 'logy' in pdata and pdata['logy']: pdata['ax'].set_yscale('log')
     
-    if 'logx' in pdata and pdata['logx']: pdata['ax'].set_xscale('log', nonposx='clip')
-    if 'logy' in pdata and pdata['logy']: pdata['ax'].set_yscale('log', nonposy='clip')
+    if 'logx' in pdata and pdata['logx']: pdata['ax'].set_xscale('log', nonpositive='clip')
+    if 'logy' in pdata and pdata['logy']: pdata['ax'].set_yscale('log', nonpositive='clip')
     
     if 'xlim' in pdata: pdata['ax'].set_xlim(pdata['xlim'][0], pdata['xlim'][1])
     if 'ylim' in pdata: pdata['ax'].set_ylim(pdata['ylim'][0], pdata['ylim'][1])

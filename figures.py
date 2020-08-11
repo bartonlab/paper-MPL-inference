@@ -43,6 +43,7 @@ NUC = ['-', 'A', 'C', 'G', 'T']
 REF = NUC[0]
 
 ## Code Ocean
+#MLB_DIR = '../data/Matlab'
 #WFS_DIR = '../data/wfsim'
 #HIV_MPL_DIR = '../data/HIV/MPL'
 #SIM_MPL_DIR = '../data/simulation/MPL'
@@ -51,6 +52,7 @@ REF = NUC[0]
 #FIG_DIR = '../results'
 
 # GitHub
+MLB_DIR = 'src/Matlab'
 WFS_DIR = 'src/wfsim'
 MPL_DIR = 'src/MPL'
 HIV_DIR = 'data/HIV'
@@ -945,11 +947,13 @@ def plot_figure_hiv_summary(**pdata):
     lineprops = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
     fillprops = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
     
-    pprops = { 'xlim':        [0.01,  0.199],
-               'ylim':        [0, 20],
+    pprops = { 'xlim':        [0.01, 0.20],
+               'xticks':      [0.01, 0.10],
+               'xticklabels': [1, 10],
+               'xminorticks': [0.01 * i for i in range(2, 10)] + [0.2],
+               'ylim':        [0, 22],
                'yticks':      [0, 20],
                'yminorticks': [5, 10, 15],
-               'xticklabels': [1, 10],
                'ylabel':      'Fold enrichment\nin CD8+ T cell\nescape mutations',
                'logx':        True,
                'theme':       'open' }
@@ -968,11 +972,13 @@ def plot_figure_hiv_summary(**pdata):
 
     ## c -- enrichment in reversions
 
-    pprops = { 'xlim':        [0.01,  0.199],
+    pprops = { 'xlim':        [0.01, 0.20],
+               'xticks':      [0.01, 0.10],
+               'xticklabels': [1, 10],
+               'xminorticks': [0.01 * i for i in range(2, 10)] + [0.2],
                'ylim':        [0, 40],
                'yticks':      [0, 40],
                'yminorticks': [10, 20, 30],
-               'xticklabels': [1, 10],
                'xlabel':      'Fraction of most positively\nselected variants (%)',
                'ylabel':      'Fold enrichment\nin reversions\noutside epitopes',
                'logx':        True,
@@ -1099,11 +1105,13 @@ def plot_figure_hiv_summary_alternate(**pdata):
     lineprops = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
     fillprops = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
     
-    pprops = { 'xlim':        [0.01,  0.199],
-               'ylim':        [0, 20],
+    pprops = { 'xlim':        [0.01, 0.20],
+               'xticks':      [0.01, 0.10],
+               'xticklabels': [1, 10],
+               'xminorticks': [0.01 * i for i in range(2, 10)] + [0.2],
+               'ylim':        [0, 22],
                'yticks':      [0, 20],
                'yminorticks': [5, 10, 15],
-               'xticklabels': [1, 10],
                'ylabel':      'Fold enrichment\nin CD8+ T cell\nescape mutations',
                'logx':        True,
                'theme':       'open' }
@@ -1122,11 +1130,13 @@ def plot_figure_hiv_summary_alternate(**pdata):
 
     ## c -- enrichment in reversions
 
-    pprops = { 'xlim':        [0.01,  0.199],
-               'ylim':        [0, 40],
+    pprops = { 'xlim':        [0.01, 0.20],
+               'xticks':      [0.01, 0.10],
+               'xticklabels': [1, 10],
+               'xminorticks': [0.01 * i for i in range(2, 10)] + [0.2],
+               'ylim':        [0, 45],
                'yticks':      [0, 40],
                'yminorticks': [10, 20, 30],
-               'xticklabels': [1, 10],
                'xlabel':      'Fraction of most positively\nselected variants (%)',
                'ylabel':      'Fold enrichment\nin reversions\noutside epitopes',
                'logx':        True,
@@ -2136,11 +2146,14 @@ def plot_supplementary_figure_example_mpl(**pdata):
     
     # unpack passed data
 
-    n_gen  = pdata['n_gen']
-    dg     = pdata['dg']
-    N      = pdata['N']
-    xfile  = pdata['xfile']
-    method = pdata['method']
+    n_gen   = pdata['n_gen']
+    dg      = pdata['dg']
+    N       = pdata['N']
+    xfile   = pdata['xfile']
+    method  = pdata['method']
+    name    = pdata['name']
+    hist_ns = pdata['hist_ns']
+    hist_dt = pdata['hist_dt']
 
     n_ben = pdata['n_ben']
     n_neu = pdata['n_neu']
@@ -2155,7 +2168,7 @@ def plot_supplementary_figure_example_mpl(**pdata):
     times = np.unique(data.T[0])
     x     = []
     for i in range(0, n_gen, dg):
-        idx    = data.T[0]==times[i]
+        idx    = data.T[0]==i
         t_data = data[idx].T[2:].T
         t_num  = data[idx].T[1].T
         t_freq = np.einsum('i,ij->j', t_num, t_data) / float(np.sum(t_num))
@@ -2322,9 +2335,9 @@ def plot_supplementary_figure_example_mpl(**pdata):
 
     ### plot histogram
 
-    df   = pd.read_csv('%s/MPL_example_collected_extended.csv.gz' % (SIM_DIR), memory_map=True)
+    df   = pd.read_csv('%s/MPL_%s_collected_extended.csv.gz' % (SIM_DIR, name), memory_map=True)
     df   = df[df.method==method]
-    df_s = df[(df.deltat==1) & (df.ns==1000)]
+    df_s = df[(df.deltat==hist_dt) & (df.ns==hist_ns)]
 
     ben_cols = ['s%d' % i for i in range(n_ben)]
     neu_cols = ['s%d' % i for i in range(n_ben, n_ben+n_neu)]
@@ -2380,7 +2393,7 @@ def plot_supplementary_figure_example_mpl(**pdata):
                'yticks'      : np.arange(len(ns_vals))+0.5,
                'yticklabels' : [int(k) for k in ns_vals],
                'xlabel'      : 'Time between samples, '+r'$\Delta t$' + ' (generations)',
-               'ylabel'      : 'Number of samples, '+r'$n_s$',
+               'ylabel'      : 'Number of sequences per time point, '+r'$n_s$',
                'theme'       : 'boxed' }
     tprops = dict(ha='center', va='center', family=FONTFAMILY, size=SIZELABEL, clip_on=False)
 
@@ -2416,7 +2429,7 @@ def plot_supplementary_figure_example_mpl(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/figs1-example-mpl.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/figs1-%s-mpl.pdf' % (FIG_DIR, name), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('MPL supplementary example done.')
@@ -2906,11 +2919,15 @@ def plot_supplementary_figure_delta_s_distance(**pdata):
 
     # get \Delta s distribution by distance group
     
-    edges = [0, 1, 10, 30, 100, 10000]
+#    edges = [0, 100, 700, 1500, 999999]
+    edges = [0, 10, 30, 100, 999999]
     group_ds = []
     
+    idxs = ds_distance<1
+    group_ds.append(ds_values[idxs])
+    
     for i in range(len(edges)-1):
-        idxs = (ds_distance>=edges[i]) & (ds_distance<edges[i+1])
+        idxs = (ds_distance>edges[i]) & (ds_distance<=edges[i+1])
         group_ds.append(ds_values[idxs])
     
     ds_max = 0.01
@@ -2987,7 +3004,12 @@ def plot_supplementary_figure_delta_s_distance(**pdata):
     legend_d = -0.0005
     legend_t = ['$0$', '$1-10$', '$11-30$', '$31-100$', '$>100$']
     legend_c = [hls_to_rgb(h0 + (dh * x), l0 + (dl * x), s0 + (ds * x)) for x in np.arange(0, 1+1/len(group_ds), 1/len(group_ds))]
-    for k in range(len(legend_t)):
+    for k in range(len(edges)):
+#        legend_t = r'$%d-%d$' % (edges[k], edges[k+1])
+#        if k==0:
+#            legend_t = r'$%d$' % (edges[k])
+#        elif k==len(edges)-2:
+#            legend_t = r'$>%d$' % (edges[k])
         mp.line(ax=ax_dist, x=[[legend_x + legend_dx1, legend_x + legend_dx2]],
                 y=[[legend_y + (k * legend_dy), legend_y + (k * legend_dy)]],
                 colors=[legend_c[k]], plotprops=dict(lw=2*SIZELINE, ls='-', clip_on=False))
@@ -3000,6 +3022,231 @@ def plot_supplementary_figure_delta_s_distance(**pdata):
     plot.close(fig)
 
     print('Delta s distance distribution done.')
+    
+
+def plot_supplementary_figure_delta_s_icov_distance(**pdata):
+    """
+    Distribution of \Delta s values by genomic distance between the masked and target variants.
+    """
+    
+    # unpack data
+    
+    ds_values   = np.array(pdata['ds_values'])
+    ds_distance = np.array(pdata['ds_distance'])
+    fig_title   = pdata['fig_title']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = DOUBLE_COLUMN
+    hshrink = 0.55
+    goldh   = w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+
+    box_top    = 0.95
+    box_bottom = 0.12
+    box_left   = 0.08
+    box_right  = 0.98
+    box_middle = box_left + (box_right - box_left)/2
+    box_sep    = 0.06
+
+    box_dist = dict(left=box_left, right=box_middle-box_sep, bottom=box_bottom, top=box_top)
+    gs_dist  = gridspec.GridSpec(1, 1, **box_dist)
+    ax_dist  = plot.subplot(gs_dist[0, 0])
+    
+    box_icov = dict(left=box_middle+box_sep, right=box_right, bottom=box_bottom, top=box_top)
+    gs_icov  = gridspec.GridSpec(1, 1, **box_icov)
+    ax_icov  = plot.subplot(gs_icov[0, 0])
+    
+    ## a - \Delta s by distance
+    
+#    edges = [0, 100, 700, 1500, 999999]
+    edges = [0, 10, 30, 100, 999999]
+    group_ds = []
+    
+    idxs = ds_distance<1
+    group_ds.append(ds_values[idxs])
+    
+    for i in range(len(edges)-1):
+        idxs = (ds_distance>edges[i]) & (ds_distance<=edges[i+1])
+        group_ds.append(ds_values[idxs])
+    
+    ds_max = 0.01
+    n_bins = 30
+    bin_ds = ds_max / n_bins
+    bins = np.arange(0, ds_max+bin_ds, bin_ds)
+    bin_x = [bins for i in range(len(group_ds))]
+    bin_y = []
+    y_min = -7
+
+    for i in range(len(group_ds)):
+        temp_y = []
+        for j in range(len(bins)-1):
+            temp_y.append(np.sum((group_ds[i]>=bins[j]) & (group_ds[i]<bins[j+1])))
+        temp_y.append(np.sum(group_ds[i]>=bins[-1]))
+        temp_y = np.array(temp_y) / np.sum(temp_y)
+        for j in range(len(temp_y)):
+            if temp_y[j]>0:
+                temp_y[j] = np.log10(temp_y[j])
+            else:
+                temp_y[j] = y_min
+        bin_y.append(temp_y)
+
+    # MAKE STEP STYLE HISTOGRAMS FOR EACH DISTANCE GROUP
+
+    lineprops = { 'lw': SIZELINE*2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
+
+    pprops = { 'xlim':        [-bin_ds, np.max(bins)+bin_ds],
+               'xticks':      [0, 0.0025, 0.005, 0.0075, 0.01],
+               'xticklabels': [0, 0.25, 0.5, 0.75, r'$\geq 1$'],
+               'ylim':        [-5, 0],
+               'yticks':      [-5, -4, -3, -2, -1, 0],
+               'yticklabels': ['$10^{-5}$', '$10^{-4}$', '$10^{-3}$', '$10^{-2}$', '$10^{-1}$', '1'],
+               'xlabel':      'Absolute value of effect on inferred selection coefficient, ' + r'$\|\Delta \hat{s}_{ij}\|$' + ' (%)',
+               'ylabel':      'Frequency',
+               'bins':        bins,
+               'combine':     True,
+               'plotprops':   lineprops,
+               'axoffset':    0.1,
+               'theme':       'open' }
+
+    h0 =  0.11
+    dh =  0 - 0.11
+    l0 =  0.53
+    dl =  0.73 - 0.53
+    s0 =  1.00
+    ds = -1.00
+
+    for k in range(len(group_ds)-1):
+        x = k/(len(group_ds) - 1)
+        c = hls_to_rgb(h0 + (dh * x), l0 + (dl * x), s0 + (ds * x))
+        # Yellow 0.11 0.53 1.00
+        # Gray   0.00 0.59 0.00
+        mp.line(ax=ax_dist, x=[bin_x[k]], y=[bin_y[k]], colors=[c], zorder=-k, **pprops)
+
+    c = hls_to_rgb(h0 + dh, l0 + dl, s0 + ds)
+    mp.plot(type='line', ax=ax_dist, x=[bin_x[-1]], y=[bin_y[-1]], colors=[c], zorder=-len(group_ds), **pprops)
+    
+    ax_dist.text(box_left-0.04, box_top+0.02, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    
+    
+    ## b - integrated covariance by distance
+
+    edges = [0, 100, 700, 1500, 999999]
+    group_icov = []
+    
+    for i in range(len(edges)-1):
+        group_icov.append(np.fabs(np.loadtxt('%s/binData_%d.txt' % (MLB_DIR, i+1), delimiter=',')))
+    
+    icov_max = 100
+    n_bins   = 30
+    bin_icov = icov_max / n_bins
+    bins     = np.arange(0, icov_max+bin_icov, bin_icov)
+    bin_x    = [bins for i in range(len(group_icov))]
+    bin_y    = []
+    y_min    = -7
+
+    for i in range(len(group_icov)):
+        temp_y = []
+        for j in range(len(bins)-1):
+            temp_y.append(np.sum((group_icov[i]>=bins[j]) & (group_icov[i]<bins[j+1])))
+        temp_y.append(np.sum(group_icov[i]>=bins[-1]))
+        temp_y = np.array(temp_y) / np.sum(temp_y)
+        for j in range(len(temp_y)):
+            if temp_y[j]>0:
+                temp_y[j] = np.log10(temp_y[j])
+            else:
+                temp_y[j] = y_min
+        bin_y.append(temp_y)
+
+    lineprops = { 'lw': SIZELINE*2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
+
+    pprops = { 'xlim':        [-bin_icov, np.max(bins)+bin_icov],
+               'xticks':      [0, 25, 50, 75, 100],
+               'xticklabels': [0, 25, 50, 75, r'$\geq 100$'],
+               'ylim':        [-5, 0],
+               'yticks':      [-5, -4, -3, -2, -1, 0],
+               'yticklabels': ['$10^{-5}$', '$10^{-4}$', '$10^{-3}$', '$10^{-2}$', '$10^{-1}$', '1'],
+               'xlabel':      'Absolute value of integrated covariance',
+               'ylabel':      'Frequency',
+               'bins':        bins,
+               'combine':     True,
+               'plotprops':   lineprops,
+               'axoffset':    0.1,
+               'theme':       'open' }
+
+    h0 =  0.11
+    dh =  0 - 0.11
+    l0 =  0.53
+    dl =  0.73 - 0.53
+    s0 =  1.00
+    ds = -1.00
+
+    for k in range(len(group_icov)-1):
+        x = k/(len(group_icov) - 1)
+        c = hls_to_rgb(h0 + (dh * x), l0 + (dl * x), s0 + (ds * x))
+        # Yellow 0.11 0.53 1.00
+        # Gray   0.00 0.59 0.00
+        mp.line(ax=ax_icov, x=[bin_x[k]], y=[bin_y[k]], colors=[c], zorder=-k, **pprops)
+
+    c = hls_to_rgb(h0 + dh, l0 + dl, s0 + ds)
+    mp.plot(type='line', ax=ax_icov, x=[bin_x[-1]], y=[bin_y[-1]], colors=[c], zorder=-len(group_icov), **pprops)
+    
+    ax_icov.text(box_middle+box_sep-0.04, box_top+0.02, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    # Plot legend - a
+
+    invt = ax_dist.transData.inverted()
+    xy1  = invt.transform((  0, 0))
+    xy2  = invt.transform((7.5, 9))
+    xy3  = invt.transform((3.0, 9))
+
+    legend_dx1 = 1*(xy1[0]-xy2[0])
+    legend_dx2 = 1*(xy1[0]-xy3[0])
+    legend_dy  = 1*(xy1[1]-xy2[1])
+
+    legend_x =  0.0072
+    legend_y = -0.5
+    legend_d = -0.0005
+    legend_t = ['$0$', '$1-10$', '$11-30$', '$31-100$', '$>100$']
+    legend_c = [hls_to_rgb(h0 + (dh * x), l0 + (dl * x), s0 + (ds * x)) for x in np.arange(0, 1+1/(len(group_ds)-1), 1/(len(group_ds)-1))] + [c]
+    for k in range(len(legend_t)):
+        mp.line(ax=ax_dist, x=[[legend_x + legend_dx1, legend_x + legend_dx2]],
+                y=[[legend_y + (k * legend_dy), legend_y + (k * legend_dy)]],
+                colors=[legend_c[k]], plotprops=dict(lw=2*SIZELINE, ls='-', clip_on=False))
+        ax_dist.text(legend_x, legend_y + (k * legend_dy), legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
+    ax_dist.text(legend_x+0.0005, legend_y - (1.75*legend_dy), 'Distance between variant i\nand target variant j (bp)', ha='center', va='center', **DEF_LABELPROPS)
+    
+    # Plot legend - b
+
+    invt = ax_icov.transData.inverted()
+    xy1  = invt.transform((  0, 0))
+    xy2  = invt.transform((7.5, 9))
+    xy3  = invt.transform((3.0, 9))
+
+    legend_dx1 = 1*(xy1[0]-xy2[0])
+    legend_dx2 = 1*(xy1[0]-xy3[0])
+    legend_dy  = 1*(xy1[1]-xy2[1])
+
+    legend_x =  72
+    legend_y = -0.5
+    legend_d = -0.0005
+    legend_t = ['$1-100$', '$101-700$', '$701-1500$', '$>1500$']
+    legend_c = [hls_to_rgb(h0 + (dh * x), l0 + (dl * x), s0 + (ds * x)) for x in np.arange(0, 1+1/(len(group_icov)-1), 1/(len(group_icov)-1))] + [c]
+    for k in range(len(legend_t)):
+        mp.line(ax=ax_icov, x=[[legend_x + legend_dx1, legend_x + legend_dx2]],
+                y=[[legend_y + (k * legend_dy), legend_y + (k * legend_dy)]],
+                colors=[legend_c[k]], plotprops=dict(lw=2*SIZELINE, ls='-', clip_on=False))
+        ax_icov.text(legend_x, legend_y + (k * legend_dy), legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
+    ax_icov.text(legend_x+5, legend_y - (1.75*legend_dy), 'Distance between variant i\nand target variant j (bp)', ha='center', va='center', **DEF_LABELPROPS)
+
+    # SAVE FIGURE
+
+    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('Delta s / integrated covariance distance distribution done.')
 
 
 def plot_figure_delta_s_hive(**pdata):
@@ -4147,3 +4394,601 @@ def plot_supplementary_figure_s_conditions(**pdata):
     plot.close(fig)
 
     print('\nSelection coefficient comparison done.')
+
+
+def plot_supplementary_figure_varying_N(**pdata):
+    """
+    Example evolutionary trajectory for a 50-site system and inferred selection coefficients,
+    together with aggregate properties across sampling levels.
+    """
+    
+    # unpack passed data
+
+    n_gen  = pdata['n_gen']
+    dg     = pdata['dg']
+    N      = pdata['N']
+    xfile  = pdata['xfile']
+    method = pdata['method']
+
+    n_ben = pdata['n_ben']
+    n_neu = pdata['n_neu']
+    n_del = pdata['n_del']
+    s_ben = pdata['s_ben']
+    s_neu = pdata['s_neu']
+    s_del = pdata['s_del']
+
+    # load and process data files
+
+    data  = np.loadtxt('%s/data/%s.dat' % (WFS_DIR, xfile))
+    times = np.unique(data.T[0])
+    x     = []
+    for i in range(0, n_gen, dg):
+        idx    = data.T[0]==i
+        t_data = data[idx].T[2:].T
+        t_num  = data[idx].T[1].T
+        t_freq = np.einsum('i,ij->j', t_num, t_data) / float(np.sum(t_num))
+        x.append(t_freq)
+    x = np.array(x).T
+
+    s_true = [s_ben for i in range(n_ben)] + [0 for i in range(n_neu)] + [s_del for i in range(n_del)]
+    s_inf  = np.loadtxt('%s/out/%s_%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1], method))
+    cov    = np.loadtxt('%s/out/covariance-%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1]))
+    ds     = np.linalg.inv(cov) / N
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w     = ONE_FIVE_COLUMN
+    goldh = w * 1.5
+    fig   = plot.figure(figsize=(w, goldh))
+
+    n_rows = [   n_ben,    n_neu,       n_del]
+    offset = [       0,    n_ben, n_ben+n_neu]
+    tag    = [   'ben',    'neu',       'del']
+    colors = [   C_BEN,    C_NEU,       C_DEL]
+    fc     = [C_BEN_LT, C_NEU_LT,    C_DEL_LT]
+
+    htot = 0.65 + 0.01
+    dh   = (htot - 0.08) / float(n_ben + n_neu + n_del + 2)
+
+    boxl = [0.12, 0.12, 0.12, 0.12]
+    boxr = [0.61, 0.61, 0.61, 0.61]
+    boxb = [htot - (dh * n_ben), htot - (dh * (n_ben + n_neu + 1)), htot - (dh * (n_ben + n_neu + n_del + 2))]
+    boxt = [               htot,         htot - (dh * (n_ben + 1)), htot - (dh * (n_ben + n_neu + 2))]
+    gs   = [0 for k in range(len(tag))]
+    
+    ## a -- population size vs. time
+    
+    top = 0.97
+    dx  = 0.03
+    dy  = 0.05
+    tempgs = gridspec.GridSpec(1, 1)
+    tempgs.update(left=boxl[0], right=top, bottom=top-2*dy, top=top)
+    ax     = plot.subplot(tempgs[0, 0])
+
+    lineprops = { 'lw' : SIZELINE*1.5, 'ls' : '-', 'alpha' : 1 }
+
+    pprops = { 'xticks'      : [0, 100, 200, 300, 400, 500],
+               'yticks'      : [1e0, 1e3, 1e6],
+               'logy'        : True,
+               'xlabel'      : 'Generation',
+               'ylabel'      : 'Population\nsize, '+r'$N$',
+               'plotprops'   : lineprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'open' }
+               
+    def get_N(t):
+        """ Return population size as a function of time. """
+        
+        N0 = 1
+        N1 = 1000000
+        N2 = 1000
+        t0 = 0
+        t1 = 50
+        t2 = 100
+        e_rise = np.log(N1)/(t1-t0)
+        e_fall = np.log(N2/N1)/(t2-t1)
+        if t==t0:
+            return N0
+        elif t>t0 and t<=t1:
+            return np.round(N0 * np.exp(e_rise * (t - t0)))
+        elif t>t1 and t<=t2:
+            return np.round(N1 * np.exp(e_fall * (t - t1)))
+        else:
+            return N2
+
+    xdat = [np.arange(0, 500, 1)]
+    ydat = [[get_N(t) for t in xdat[0]]]
+    mp.plot(type='line', ax=ax, x=xdat, y=ydat, colors=[C_MPL], **pprops)
+    
+    ax.text(boxl[0]-dx-0.03, top+0.01, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    ## b -- all trajectories together
+
+    dx = 0.03
+    dy = 0.05
+    tempgs = gridspec.GridSpec(1, 1)
+    tempgs.update(left=boxl[0], right=boxr[0], bottom=top-5*dy, top=top-3*dy)
+    ax     = plot.subplot(tempgs[0, 0])
+
+    lineprops = { 'lw' : SIZELINE*1.5, 'ls' : '-', 'alpha' : 0.6 }
+
+    pprops = { 'xticks'      : [0, 100, 200, 300, 400, 500],
+               'yticks'      : [0, 1],
+               'yminorticks' : [0.25, 0.5, 0.75],
+               'nudgey'      : 1.1,
+               'xlabel'      : 'Generation',
+               'ylabel'      : 'Allele\nfrequency, '+r'$x$',
+               'plotprops'   : lineprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'open' }
+
+    xdat = [range(0, n_gen, dg) for k in range(len(x))]
+    ydat = [k for k in x]
+    mp.plot(type='line', ax=ax, x=xdat, y=ydat, colors=[C_BEN_LT for k in range(n_ben)] + [LCOLOR for k in range(n_neu)] + [C_DEL_LT for k in range(n_del)], **pprops)
+#    mp.plot(type='line', ax=ax, x=xdat, y=ydat, colors=[LCOLOR for k in range(len(x))], **pprops)
+
+    ## c -- individual beneficial/neutral/deleterious trajectories and selection coefficients
+
+    idx = 0
+    for k in range(len(tag)):
+        
+        ### trajectories
+        
+        gs[k] = gridspec.GridSpec(n_rows[k], 2)
+        gs[k].update(left=boxl[k], right=boxr[k], bottom=boxb[k], top=boxt[k], wspace=0.05)
+        ax = [[plot.subplot(gs[k][i, 0]), plot.subplot(gs[k][i, 1])] for i in range(n_rows[k])]
+        
+        legendprops = { 'loc' : 4, 'frameon' : False, 'scatterpoints' : 1, 'handletextpad' : 0.1,
+                        'prop' : {'size' : SIZELABEL}, 'ncol' : 1 }
+        lineprops   = { 'lw' : SIZELINE*1.5, 'linestyle' : '-', 'alpha' : 1.0 }
+        fillprops   = { 'lw' : 0, 'alpha' : 0.3, 'interpolate' : True }
+        
+        pprops = { 'xticks' : [],
+                   'yticks' : [],
+                   'hide'   : ['top','bottom','left','right'],
+                   'theme'  : 'open' }
+        
+        for i in range(n_rows[k]):
+            pprops['colors'] = [colors[k]]
+            pprops['xlim']   = [    0,  500]
+            pprops['ylim']   = [-0.08, 1.08]
+            ydat             = x[offset[k]+i]
+            if (i==n_rows[k]-1) and (k==len(tag)-1):
+                pprops['xticks']   = [0, 100, 200, 300, 400, 500]
+                pprops['xlabel']   = 'Generation'
+                pprops['hide']     = ['top','left','right']
+                pprops['axoffset'] = 0.3
+            mp.line(             ax=ax[i][0], x=[range(0, n_gen, dg)], y=[ydat], plotprops=lineprops, **pprops)
+            mp.plot(type='fill', ax=ax[i][0], x=[range(0, n_gen, dg)], y=[ydat], plotprops=fillprops, **pprops)
+        
+        ### selection coefficient estimates
+        
+        sprops = { 'lw' : 0, 's' : 9., 'marker' : 'o' }
+        
+        pprops = { 'yticks'  : [],
+            'xticks'  : [],
+            'hide'    : ['top','bottom','left','right'],
+            'theme'   : 'open' }
+        
+        for i in range(n_rows[k]):
+            pprops['xlim'] = [-0.04, 0.04]
+            pprops['ylim'] = [  0.5,  1.5]
+            ydat           = [1]
+            xdat           = [s_inf[offset[k]+i]]
+            xerr           = np.sqrt(ds[offset[k]+i][offset[k]+i])
+            if (i==n_rows[k]-1) and (k==len(tag)-1):
+                pprops['xticks']      = [-0.04,   -0.02,      0,   0.02,   0.04]
+                pprops['xticklabels'] = [  ' ', r'$-2$', r'$0$', r'$2$', r'$4$']
+                pprops['xlabel']      = 'Inferred selection\ncoefficient, ' + r'$\hat{s}$' + ' (%)'
+                pprops['hide']        = ['top','left','right']
+                pprops['axoffset']    = 0.3
+            mp.plot(type='error', ax=ax[i][1], x=[xdat], y=[ydat], xerr=[xerr], colors=[colors[k]], **pprops)
+            ax[i][1].axvline(x=s_true[idx], ls=':', lw=SIZELINE, color=BKCOLOR)
+            idx += 1
+
+    ### bounding boxes
+
+    ax[0][0].text(boxl[0]-0.06, top-3*dy+0.01, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax[0][0].text(boxl[0]-0.06, boxt[0], 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    lineprops = { 'lw' : AXWIDTH/2., 'ls' : '-', 'alpha' : 1.0 }
+    pprops    = { 'xlim' : [0, 1], 'xticks' : [], 'ylim' : [0, 1], 'yticks' : [],
+        'hide' : ['top','bottom','left','right'], 'plotprops' : lineprops }
+    txtprops = {'ha' : 'right', 'va' : 'center', 'color' : BKCOLOR, 'family' : FONTFAMILY,
+        'size' : SIZELABEL, 'rotation' : 90, 'transform' : fig.transFigure}
+    ax[0][0].text(boxl[0]-0.01, (boxb[0]+boxt[0])/2.,  'Beneficial', **txtprops)
+    ax[0][0].text(boxl[0]-0.01, (boxb[1]+boxt[1])/2.,     'Neutral', **txtprops)
+    ax[0][0].text(boxl[0]-0.01, (boxb[2]+boxt[2])/2., 'Deleterious', **txtprops)
+
+    boxprops = {'ec' : BKCOLOR, 'lw' : SIZELINE/2., 'fc' : 'none', 'clip_on' : False, 'zorder' : -100}
+
+    dx  = 0.005
+    dxl = 0.000
+    dxr = 0.001
+    dy  = 0.003
+    for k in range(len(tag)):
+        ll = boxl[k] + dxl                     # left box left
+        lb = boxb[k] - dy                      # left box bottom
+        rl = (boxl[k] + boxr[k])/2. + dx + dxl # right box left
+        wd = (boxr[k] - boxl[k])/2. - dxr      # box width
+        ht = (boxt[k] - boxb[k]) + (2. * dy)   # box height
+        
+        recL = matplotlib.patches.Rectangle(xy=(ll, lb), width=wd, height=ht, transform=fig.transFigure, **boxprops)
+        recL = ax[0][0].add_patch(recL)
+        recR = matplotlib.patches.Rectangle(xy=(rl, lb), width=wd, height=ht, transform=fig.transFigure, **boxprops)
+        recR = ax[0][0].add_patch(recR)
+
+    ## d -- histogram of selection coefficients
+
+    ### set up grid
+
+    box_l  = dict(left=0.72, right=top, bottom=0.05, top=top-3*0.05-0.01)
+    #box_ru = dict(left=0.69, right=0.97, bottom=0.63, top=0.96)
+    #box_rl = dict(left=0.69, right=0.97, bottom=0.14, top=0.47)
+
+    gs_l  = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_l)
+    #gs_ru = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_ru)
+    #gs_rl = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_rl)
+    ax_l  = plot.subplot(gs_l[0, 0])
+    #ax_ru = plot.subplot(gs_ru[0, 0])
+    #ax_rl = plot.subplot(gs_rl[0, 0])
+
+    ### plot histogram
+
+    df   = pd.read_csv('%s/MPL_simple_N_collected_extended.csv.gz' % (SIM_DIR), memory_map=True)
+    df   = df[df.method==method]
+    df_s = df[(df.deltat==10) & (df.ns==100)]
+
+    ben_cols = ['s%d' % i for i in range(n_ben)]
+    neu_cols = ['s%d' % i for i in range(n_ben, n_ben+n_neu)]
+    del_cols = ['s%d' % i for i in range(n_ben+n_neu, n_ben+n_neu+n_del)]
+
+    colors     = [C_BEN, C_NEU, C_DEL]
+    tags       = ['beneficial', 'neutral', 'deleterious']
+    cols       = [ben_cols, neu_cols, del_cols]
+    s_true_loc = [s_ben, s_neu, s_del]
+
+    dashlineprops = { 'lw' : SIZELINE * 2.0, 'ls' : ':', 'alpha' : 0.5, 'color' : BKCOLOR }
+    histprops = dict(histtype='bar', lw=SIZELINE/2, rwidth=0.8, ls='solid', alpha=0.7, edgecolor='none',
+                     orientation='horizontal')
+    pprops = { 'xlim'        : [-0.04, 0.04],
+               'xticks'      : [  -0.04,   -0.03,   -0.02,   -0.01,     0.,   0.01,   0.02,   0.03,   0.04],
+               'yticklabels' : [r'$-4$', r'$-3$', r'$-2$', r'$-1$', r'$0$', r'$1$', r'$2$', r'$3$', r'$4$'],
+               'ylim'        : [0., 0.075],
+               'yticks'      : [0., 0.025, 0.05, 0.075],
+               'xlabel'      : 'Frequency',
+               'ylabel'      : 'Inferred selection coefficient, ' + r'$\hat{s}$' + ' (%)',
+               'bins'        : np.arange(-0.04, 0.04+0.001, 0.001),
+               'combine'     : True,
+               'plotprops'   : histprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'boxed' }
+
+    for i in range(len(tags)):
+        x = [np.array(df_s[cols[i]]).flatten()]
+        tprops = dict(ha='left', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=270, clip_on=False)
+        ax_l.text(0.102, s_true_loc[i], r'$s_{%s}$' % (tags[i]), color=colors[i], **tprops)
+        ax_l.axhline(y=s_true_loc[i], **dashlineprops)
+        if i<len(tags)-1: mp.hist(             ax=ax_l, x=x, colors=[colors[i]], **pprops)
+        else:             mp.plot(type='hist', ax=ax_l, x=x, colors=[colors[i]], **pprops)
+
+    ## outside text labels
+
+    tprops = dict(color=BKCOLOR, ha='center', va='center', family=FONTFAMILY, size=SIZELABEL,
+                  clip_on=False, transform=fig.transFigure)
+    dx = -0.03
+    dy =  0.02
+
+    ax_l.text(box_l['left']+dx,  box_l['top']+dy, 'd'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    # SAVE FIGURE
+
+    plot.savefig('%s/revision/varying-N.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('MPL supplementary example (varying N) done.')
+
+
+def plot_supplementary_figure_varying_s(**pdata):
+    """
+    Example evolutionary trajectory for a 50-site system and inferred selection coefficients,
+    together with aggregate properties across sampling levels.
+    """
+    
+    # unpack passed data
+
+    n_gen  = pdata['n_gen']
+    dg     = pdata['dg']
+    N      = pdata['N']
+    method = pdata['method']
+    name   = pdata['name']
+
+    n_ben = pdata['n_ben']
+    n_neu = pdata['n_neu']
+    n_del = pdata['n_del']
+    s_ben = pdata['s_ben']
+    s_neu = pdata['s_neu']
+    s_del = pdata['s_del']
+
+    # load and process data files
+
+    s_true = [s_ben for i in range(n_ben-1)] + [0 for i in range(n_neu)] + [s_del for i in range(n_del)]
+    s_inf  = np.load('%s/single-%s.npz' % (SIM_DIR, name))['selection_constant']
+    cov    = np.load('%s/WF-single-%s.npz' % (SIM_DIR, name))['covar_int'] / N
+    ds     = np.linalg.inv(cov) / N
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w     = ONE_FIVE_COLUMN
+    goldh = w * 1.5
+    fig   = plot.figure(figsize=(w, goldh))
+
+    n_rows = [ n_ben-1,       n_neu,    n_del]
+    offset = [       1, n_ben+n_del,    n_ben]
+    tag    = [   'ben',       'neu',    'del']
+    colors = [   C_BEN,       C_NEU,    C_DEL]
+    fc     = [C_BEN_LT,    C_NEU_LT, C_DEL_LT]
+
+    htot = 0.65 + 0.01
+    dh   = (htot - 0.08) / float(n_ben + n_neu + n_del + 2)
+
+    boxl = [0.12, 0.12, 0.12, 0.12]
+    boxr = [0.61, 0.61, 0.61, 0.61]
+    boxb = [htot - (dh * n_ben), htot - (dh * (n_ben + n_neu + 1)), htot - (dh * (n_ben + n_neu + n_del + 2))]
+    boxt = [               htot,         htot - (dh * (n_ben + 1)), htot - (dh * (n_ben + n_neu + 2))]
+    gs   = [0 for k in range(len(tag))]
+    
+    ## a -- selection coefficient vs. time
+    
+    top = 0.97
+    dx  = 0.03
+    dy  = 0.05
+    tempgs = gridspec.GridSpec(1, 1)
+    tempgs.update(left=boxl[0], right=boxr[0], bottom=top-2*dy, top=top)
+    ax     = plot.subplot(tempgs[0, 0])
+
+    lineprops = { 'lw' : SIZELINE*1.5, 'ls' : '-', 'alpha' : 1 }
+
+    pprops = { 'xticks'      : [0, 200, 400, 600, 800, 1000],
+               'yticks'      : [0, 0.02, 0.04],
+               'yticklabels' : [r'$0$', r'$2$', r'$4$'],
+               'xlabel'      : 'Generation',
+               'ylabel'      : 'Time-varying selection\ncoefficient, '+r'$s$' + ' (%)',
+               'plotprops'   : lineprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'open' }
+               
+    xdat = [np.arange(0, 1000, 1)]
+    ydat = [np.load('%s/s-single-%s.npy' % (SIM_DIR, name)).T[0]]
+    savg = np.mean(ydat[0]) if ydat[0][0]==0 else ydat[0][0]
+    mp.plot(type='line', ax=ax, x=xdat, y=ydat, colors=[C_MPL], **pprops)
+    ax.axhline(y=savg, ls=':', lw=SIZELINE, color=BKCOLOR)
+    
+    ax.text(boxl[0]-dx-0.03, top+0.01, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    
+    ## b -- time-varying selection coefficients
+    
+    box_t  = dict(left=0.72, right=top, bottom=top-2*0.05, top=top-0.01)
+    gs_t  = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_t)
+    ax_t  = plot.subplot(gs_t[0, 0])
+
+    ### plot histogram
+
+    df   = pd.read_csv('%s/MPL_%s_collected_extended.csv.gz' % (SIM_DIR, name), memory_map=True)
+    df   = df[df.method==method]
+    df_s = df[(df.deltat==10) & (df.ns==100)]
+
+    histprops = dict(histtype='bar', lw=SIZELINE/2, rwidth=0.8, ls='solid', alpha=0.7, edgecolor='none',
+                     orientation='horizontal')
+    pprops = { 'xlim'        : [0, 0.04],
+               'xticks'      : [0, 0.02, 0.04],
+               'yticklabels' : [r'$0$', r'$2$', r'$4$'],
+               'ylim'        : [0., 0.075],
+               'yticks'      : [0., 0.025, 0.05, 0.075],
+               'xlabel'      : 'Frequency',
+               'ylabel'      : 'Inferred selection\ncoefficient, ' + r'$\hat{s}$' + ' (%)',
+               'bins'        : np.arange(0, 0.04+0.001, 0.001),
+               'combine'     : True,
+               'plotprops'   : histprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'boxed' }
+
+    x = [np.array(df_s['s0']).flatten()]
+    mp.plot(type='hist', ax=ax_t, x=x, colors=[C_MPL], **pprops)
+    ax_t.axhline(y=savg, ls=':', lw=SIZELINE, color=BKCOLOR)
+    
+    ax.text(0.68, top+0.01, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    ## c -- all trajectories together
+
+    dx = 0.03
+    dy = 0.05
+    tempgs = gridspec.GridSpec(1, 1)
+    tempgs.update(left=boxl[0], right=boxr[0], bottom=top-5*dy, top=top-3*dy)
+    ax     = plot.subplot(tempgs[0, 0])
+
+    lineprops = { 'lw' : SIZELINE*1.5, 'ls' : '-', 'alpha' : 0.6 }
+
+    pprops = { 'xticks'      : [0, 200, 400, 600, 800, 1000],
+               'yticks'      : [0, 1],
+               'yminorticks' : [0.25, 0.5, 0.75],
+               'nudgey'      : 1.1,
+               'xlabel'      : 'Generation',
+               'ylabel'      : 'Allele\nfrequency, '+r'$x$',
+               'plotprops'   : lineprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'open' }
+               
+    data = np.load('%s/WF-single-%s.npz' % (SIM_DIR, name))['traj']
+    x    = data.T
+
+    xdat = [range(0, n_gen, dg) for k in range(len(x))]
+    ydat = [k for k in x]
+    mp.plot(type='line', ax=ax, x=xdat, y=ydat,
+            colors=[C_MPL] + [C_BEN_LT for k in range(n_ben-1)] + [C_DEL_LT for k in range(n_del)] + [LCOLOR for k in range(n_neu)], **pprops)
+#    mp.plot(type='line', ax=ax, x=xdat, y=ydat, colors=[LCOLOR for k in range(len(x))], **pprops)
+
+    ## d -- individual beneficial/neutral/deleterious trajectories and selection coefficients
+
+    idx = 0
+    for k in range(len(tag)):
+        
+        ### trajectories
+        
+        gs[k] = gridspec.GridSpec(n_rows[k], 2)
+        gs[k].update(left=boxl[k], right=boxr[k], bottom=boxb[k], top=boxt[k], wspace=0.05)
+        ax = [[plot.subplot(gs[k][i, 0]), plot.subplot(gs[k][i, 1])] for i in range(n_rows[k])]
+        
+        legendprops = { 'loc' : 4, 'frameon' : False, 'scatterpoints' : 1, 'handletextpad' : 0.1,
+                        'prop' : {'size' : SIZELABEL}, 'ncol' : 1 }
+        lineprops   = { 'lw' : SIZELINE*1.5, 'linestyle' : '-', 'alpha' : 1.0 }
+        fillprops   = { 'lw' : 0, 'alpha' : 0.3, 'interpolate' : True }
+        
+        pprops = { 'xticks' : [],
+                   'yticks' : [],
+                   'hide'   : ['top','bottom','left','right'],
+                   'theme'  : 'open' }
+        
+        for i in range(n_rows[k]):
+            pprops['colors'] = [colors[k]]
+            pprops['xlim']   = [    0, 1000]
+            pprops['ylim']   = [-0.08, 1.08]
+            ydat             = x[offset[k]+i]
+            if (i==n_rows[k]-1) and (k==len(tag)-1):
+                pprops['xticks']   = [0, 200, 400, 600, 800, 1000]
+                pprops['xlabel']   = 'Generation'
+                pprops['hide']     = ['top','left','right']
+                pprops['axoffset'] = 0.3
+            mp.line(             ax=ax[i][0], x=[range(0, n_gen, dg)], y=[ydat], plotprops=lineprops, **pprops)
+            mp.plot(type='fill', ax=ax[i][0], x=[range(0, n_gen, dg)], y=[ydat], plotprops=fillprops, **pprops)
+        
+        ### selection coefficient estimates
+        
+        sprops = { 'lw' : 0, 's' : 9., 'marker' : 'o' }
+        
+        pprops = { 'yticks'  : [],
+            'xticks'  : [],
+            'hide'    : ['top','bottom','left','right'],
+            'theme'   : 'open' }
+        
+        for i in range(n_rows[k]):
+            pprops['xlim'] = [-0.04, 0.04]
+            pprops['ylim'] = [  0.5,  1.5]
+            ydat           = [1]
+            xdat           = [s_inf[offset[k]+i]]
+            xerr           = np.sqrt(ds[offset[k]+i][offset[k]+i])
+            if (i==n_rows[k]-1) and (k==len(tag)-1):
+                pprops['xticks']      = [-0.04,   -0.02,      0,   0.02,   0.04]
+                pprops['xticklabels'] = [  ' ', r'$-2$', r'$0$', r'$2$', r'$4$']
+                pprops['xlabel']      = 'Inferred selection\ncoefficient, ' + r'$\hat{s}$' + ' (%)'
+                pprops['hide']        = ['top','left','right']
+                pprops['axoffset']    = 0.3
+            mp.plot(type='error', ax=ax[i][1], x=[xdat], y=[ydat], xerr=[xerr], colors=[colors[k]], **pprops)
+            ax[i][1].axvline(x=s_true[idx], ls=':', lw=SIZELINE, color=BKCOLOR)
+            idx += 1
+
+    ### bounding boxes
+
+    ax[0][0].text(boxl[0]-0.06, top-3*dy+0.01, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+    ax[0][0].text(boxl[0]-0.06, boxt[0], 'd'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    lineprops = { 'lw' : AXWIDTH/2., 'ls' : '-', 'alpha' : 1.0 }
+    pprops    = { 'xlim' : [0, 1], 'xticks' : [], 'ylim' : [0, 1], 'yticks' : [],
+        'hide' : ['top','bottom','left','right'], 'plotprops' : lineprops }
+    txtprops = {'ha' : 'right', 'va' : 'center', 'color' : BKCOLOR, 'family' : FONTFAMILY,
+        'size' : SIZELABEL, 'rotation' : 90, 'transform' : fig.transFigure}
+    ax[0][0].text(boxl[0]-0.01, (boxb[0]+boxt[0])/2.,  'Beneficial', **txtprops)
+    ax[0][0].text(boxl[0]-0.01, (boxb[1]+boxt[1])/2.,     'Neutral', **txtprops)
+    ax[0][0].text(boxl[0]-0.01, (boxb[2]+boxt[2])/2., 'Deleterious', **txtprops)
+
+    boxprops = {'ec' : BKCOLOR, 'lw' : SIZELINE/2., 'fc' : 'none', 'clip_on' : False, 'zorder' : -100}
+
+    dx  = 0.005
+    dxl = 0.000
+    dxr = 0.001
+    dy  = 0.003
+    for k in range(len(tag)):
+        ll = boxl[k] + dxl                     # left box left
+        lb = boxb[k] - dy                      # left box bottom
+        rl = (boxl[k] + boxr[k])/2. + dx + dxl # right box left
+        wd = (boxr[k] - boxl[k])/2. - dxr      # box width
+        ht = (boxt[k] - boxb[k]) + (2. * dy)   # box height
+        
+        recL = matplotlib.patches.Rectangle(xy=(ll, lb), width=wd, height=ht, transform=fig.transFigure, **boxprops)
+        recL = ax[0][0].add_patch(recL)
+        recR = matplotlib.patches.Rectangle(xy=(rl, lb), width=wd, height=ht, transform=fig.transFigure, **boxprops)
+        recR = ax[0][0].add_patch(recR)
+
+    ## e -- histogram of selection coefficients
+
+    ### set up grid
+
+    box_l  = dict(left=0.72, right=top, bottom=0.05, top=top-3*0.05-0.01)
+    #box_ru = dict(left=0.69, right=0.97, bottom=0.63, top=0.96)
+    #box_rl = dict(left=0.69, right=0.97, bottom=0.14, top=0.47)
+
+    gs_l  = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_l)
+    #gs_ru = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_ru)
+    #gs_rl = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_rl)
+    ax_l  = plot.subplot(gs_l[0, 0])
+    #ax_ru = plot.subplot(gs_ru[0, 0])
+    #ax_rl = plot.subplot(gs_rl[0, 0])
+
+    ### plot histogram
+
+    df   = pd.read_csv('%s/MPL_%s_collected_extended.csv.gz' % (SIM_DIR, name), memory_map=True)
+    df   = df[df.method==method]
+    df_s = df[(df.deltat==10) & (df.ns==100)]
+
+    ben_cols = ['s%d' % i for i in range(1, n_ben)]
+    del_cols = ['s%d' % i for i in range(n_ben, n_ben+n_del)]
+    neu_cols = ['s%d' % i for i in range(n_ben+n_del, n_ben+n_del+n_neu)]
+
+    colors     = [C_BEN, C_NEU, C_DEL]
+    tags       = ['beneficial', 'neutral', 'deleterious']
+    cols       = [ben_cols, neu_cols, del_cols]
+    s_true_loc = [s_ben, s_neu, s_del]
+
+    dashlineprops = { 'lw' : SIZELINE * 2.0, 'ls' : ':', 'alpha' : 0.5, 'color' : BKCOLOR }
+    histprops = dict(histtype='bar', lw=SIZELINE/2, rwidth=0.8, ls='solid', alpha=0.7, edgecolor='none',
+                     orientation='horizontal')
+    pprops = { 'xlim'        : [-0.04, 0.04],
+               'xticks'      : [  -0.04,   -0.03,   -0.02,   -0.01,     0.,   0.01,   0.02,   0.03,   0.04],
+               'yticklabels' : [r'$-4$', r'$-3$', r'$-2$', r'$-1$', r'$0$', r'$1$', r'$2$', r'$3$', r'$4$'],
+               'ylim'        : [0., 0.075],
+               'yticks'      : [0., 0.025, 0.05, 0.075],
+               'xlabel'      : 'Frequency',
+               'ylabel'      : 'Inferred selection coefficient, ' + r'$\hat{s}$' + ' (%)',
+               'bins'        : np.arange(-0.04, 0.04+0.001, 0.001),
+               'combine'     : True,
+               'plotprops'   : histprops,
+               'axoffset'    : 0.1,
+               'theme'       : 'boxed' }
+
+    for i in range(len(tags)):
+        x = [np.array(df_s[cols[i]]).flatten()]
+        tprops = dict(ha='left', va='center', family=FONTFAMILY, size=SIZELABEL, rotation=270, clip_on=False)
+        ax_l.text(0.102, s_true_loc[i], r'$s_{%s}$' % (tags[i]), color=colors[i], **tprops)
+        ax_l.axhline(y=s_true_loc[i], **dashlineprops)
+        if i<len(tags)-1: mp.hist(             ax=ax_l, x=x, colors=[colors[i]], **pprops)
+        else:             mp.plot(type='hist', ax=ax_l, x=x, colors=[colors[i]], **pprops)
+
+    ## outside text labels
+
+    tprops = dict(color=BKCOLOR, ha='center', va='center', family=FONTFAMILY, size=SIZELABEL,
+                  clip_on=False, transform=fig.transFigure)
+    dx = -0.04
+    dy =  0.02
+
+    ax_l.text(box_l['left']+dx,  box_l['top']+dy, 'e'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    # SAVE FIGURE
+
+    plot.savefig('%s/revision/varying-s-%s.pdf' % (FIG_DIR, name), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('MPL supplementary example (varying s) done.')
