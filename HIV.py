@@ -14,10 +14,10 @@ HXB2_TAG = 'B.FR.1983.HXB2-LAI-IIIB-BRU.K03455.19535'
 TIME_INDEX = 3
 ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+++++++++++++++++++++++++++'
 
-## Code Ocean
+## Code Ocean directories
 #HIV_DIR = '../data/HIV'
 
-# GitHub
+# GitHub directories
 HIV_DIR = 'data/HIV'
 
 

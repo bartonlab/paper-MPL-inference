@@ -41,9 +41,10 @@ import mplot as mp
 
 NUC = ['-', 'A', 'C', 'G', 'T']
 REF = NUC[0]
+EXT = '.pdf'
 
-## Code Ocean
-#MLB_DIR = '../data/Matlab'
+## Code Ocean directories
+#MLB_DIR = '../data/HIV'
 #WFS_DIR = '../data/wfsim'
 #HIV_MPL_DIR = '../data/HIV/MPL'
 #SIM_MPL_DIR = '../data/simulation/MPL'
@@ -51,10 +52,11 @@ REF = NUC[0]
 #SIM_DIR = '../data/simulation'
 #FIG_DIR = '../results'
 
-# GitHub
+# GitHub directories
 MLB_DIR = 'src/Matlab'
 WFS_DIR = 'src/wfsim'
-MPL_DIR = 'src/MPL'
+HIV_MPL_DIR = 'src/MPL/HIV'
+SIM_MPL_DIR = 'src/MPL/out'
 HIV_DIR = 'data/HIV'
 SIM_DIR = 'data/simulation'
 FIG_DIR = 'figures'
@@ -75,9 +77,9 @@ C_SL     = C_NEU
 # Plot conventions
 
 def cm2inch(x): return float(x)/2.54
-SINGLE_COLUMN   = cm2inch(8.5)
+SINGLE_COLUMN   = cm2inch(8.8)
 ONE_FIVE_COLUMN = cm2inch(11.4)
-DOUBLE_COLUMN   = cm2inch(17.4)
+DOUBLE_COLUMN   = cm2inch(18.0)
 
 GOLDR        = (1.0 + np.sqrt(5)) / 2.0
 TICKLENGTH   = 3
@@ -242,8 +244,8 @@ def plot_figure_example_mpl(**pdata):
     x = np.array(x).T
 
     s_true = [s_ben for i in range(n_ben)] + [0 for i in range(n_neu)] + [s_del for i in range(n_del)]
-    s_inf  = np.loadtxt('%s/out/%s_%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1], method))
-    cov    = np.loadtxt('%s/out/covariance-%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1]))
+    s_inf  = np.loadtxt('%s/%s_%s.dat' % (SIM_MPL_DIR, xfile.split('wfsim_')[1], method))
+    cov    = np.loadtxt('%s/covariance-%s.dat' % (SIM_MPL_DIR, xfile.split('wfsim_')[1]))
     ds     = np.linalg.inv(cov) / N
 
     # PLOT FIGURE
@@ -365,7 +367,7 @@ def plot_figure_example_mpl(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/fig1-example-mpl.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/fig-1-example-mpl%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     #plot.savefig('%s/fig1.png' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
@@ -404,8 +406,8 @@ def plot_figure_performance(**pdata):
     fig     = plot.figure(figsize=(w, goldh))
 
     box_top   = 0.96
-    box_left  = 0.23
-    box_right = 0.95
+    box_left  = 0.24
+    box_right = 0.96
     ddy      = 0.12 / hshrink
     dy       = 0.14 / hshrink
 
@@ -493,8 +495,8 @@ def plot_figure_performance(**pdata):
 
     for k in range(len(test_sets)):
         xmin, xmax = -0.6, len(x_ben[k])-0.6
-#        ymin, ymax =  0.3, 1.05
-        ymin, ymax =  0.5, 1.00
+        ymin, ymax =  0.45, 1.05
+#        ymin, ymax =  0.5, 1.00
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
@@ -507,6 +509,7 @@ def plot_figure_performance(**pdata):
 
         if k==0:
             pprops['yticks'] = [0.5, 1.0]
+            pprops['yticklabels'] = [r'$\leq 0.5$', '1.0']
 #            pprops['yminorticks'] = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9]
             pprops['yminorticks'] = [0.6, 0.7, 0.8, 0.9]
             pprops['ylabel'] = 'Classification of\nbeneficial alleles\n(AUROC)'
@@ -520,12 +523,12 @@ def plot_figure_performance(**pdata):
         y_avgs = np.mean(y_vals, axis=1)
         del pprops['colors']
 
-        # plot standard deviation
-
-        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
-        err        = np.std(y_vals, axis=1)
-        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
-                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+#        # plot standard deviation
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        err        = np.std(y_vals, axis=1)
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
 #        # plot quartiles
 #
@@ -535,24 +538,27 @@ def plot_figure_performance(**pdata):
 #        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
 #                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
-#        # plot data points
-#
-#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
-#        pprops['edgecolor'] = eclist
-#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
-#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
-#
-#        pprops['facecolor'] = fclist
-#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+        # plot data points
+
+        y_vals = np.array(y_vals)
+        y_vals[y_vals<0.5] = 0.5
+
+        pprops['facecolor'] = ['None' for _c1 in range(len(x_ben[k]))]
+        pprops['edgecolor'] = eclist
+        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1.0)
+        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+
+        pprops['facecolor'] = fclist
+        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
 
     ## c -- classification of deleterious mutants
 
     for k in range(len(test_sets)):
         xmin, xmax = -0.6, len(x_err[k])-0.6
-#        ymin, ymax =  0.3, 1.05
-        ymin, ymax =  0.5, 1.00
+        ymin, ymax =  0.45, 1.05
+#        ymin, ymax =  0.5, 1.00
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
@@ -565,6 +571,7 @@ def plot_figure_performance(**pdata):
 
         if k==0:
             pprops['yticks'] = [0.5, 1.0]
+            pprops['yticklabels'] = [r'$\leq 0.5$', '1.0']
 #            pprops['yminorticks'] = [0.3, 0.4, 0.6, 0.7, 0.8, 0.9]
             pprops['yminorticks'] = [0.6, 0.7, 0.8, 0.9]
             pprops['ylabel'] = 'Classification of\ndeleterious alleles\n(AUROC)'
@@ -578,12 +585,12 @@ def plot_figure_performance(**pdata):
         y_avgs = np.mean(y_vals, axis=1)
         del pprops['colors']
         
-        # plot standard deviation
-
-        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
-        err        = np.std(y_vals, axis=1)
-        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
-                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+#        # plot standard deviation
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        err        = np.std(y_vals, axis=1)
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
 #        # plot quartiles
 #
@@ -593,23 +600,26 @@ def plot_figure_performance(**pdata):
 #        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
 #                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
-#        # plot data points
-#
-#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
-#        pprops['edgecolor'] = eclist
-#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
-#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
-#
-#        pprops['facecolor'] = fclist
-#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+        # plot data points
+
+        y_vals = np.array(y_vals)
+        y_vals[y_vals<0.5] = 0.5
+
+        pprops['facecolor'] = ['None' for _c1 in range(len(x_del[k]))]
+        pprops['edgecolor'] = eclist
+        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1.0)
+        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+
+        pprops['facecolor'] = fclist
+        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
 
     ## d - NRMSE
 
     for k in range(len(test_sets)):
         xmin, xmax = -0.6, len(x_err[k])-0.6
-        ymin, ymax =  0., 3.
+        ymin, ymax =  0., 3.1
         
         #print('%s\tNRMSE between %.2f and %.2f' % (test_sets[k], np.min(y_err[k]), np.max(y_err[k])))
 
@@ -624,6 +634,7 @@ def plot_figure_performance(**pdata):
 
         if k==0:
             pprops['yticks'] = [0, 1, 2, 3]
+            pprops['yticklabels'] = ['0', '1', '2', r'$\geq 3$']
             pprops['ylabel'] = 'Error on inferred\nselection coefficients\n(NRMSE)'
             pprops['hide']   = []
         
@@ -635,12 +646,12 @@ def plot_figure_performance(**pdata):
         y_avgs = np.mean(y_vals, axis=1)
         del pprops['colors']
         
-        # plot standard deviation
-
-        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
-        err        = np.std(y_vals, axis=1)
-        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
-                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+#        # plot standard deviation
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        err        = np.std(y_vals, axis=1)
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
 #        # plot quartiles
 #
@@ -658,17 +669,21 @@ def plot_figure_performance(**pdata):
 #        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
 #                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
-#        # plot data points
-#
-#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
-#        pprops['edgecolor'] = eclist
-#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
-#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
-#
-#        pprops['facecolor'] = fclist
-#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+        # plot data points
+
+        y_vals = np.array(y_vals)
+        y_vals[y_vals>3] = 3
+        y_vals[1, :] = 100
+
+        pprops['facecolor'] = ['None' for _c1 in range(len(x_err[k]))]
+        pprops['edgecolor'] = eclist
+        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1.0)
+        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+
+        pprops['facecolor'] = fclist
+        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
         
         # show 'NA' for FIT NRMSE
         
@@ -688,7 +703,7 @@ def plot_figure_performance(**pdata):
 
         pprops = { 'colors':      [colorlist],
                    'xlim':        [xmin, xmax],
-                   'ylim':        [ymin, ymax],
+                   'ylim':        [ymin-0.35, ymax],
                    'xticks':      x_t[k],
                    'xticklabels': labels,
                    'yticks':      [],
@@ -708,13 +723,13 @@ def plot_figure_performance(**pdata):
         y_avgs = np.mean(y_vals, axis=1)
         del pprops['colors']
         
-        # plot standard deviation
-
-        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
-        err        = np.std(y_vals, axis=1)
-        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
-                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
-        
+#        # plot standard deviation
+#
+#        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
+#        err        = np.std(y_vals, axis=1)
+#        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[ee] for ee in err],
+#                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
+#
 #        # plot quartiles
 #
 #        errorprops = dict(mew=AXWIDTH/2, markersize=SMALLSIZEDOT/3, fmt='o', elinewidth=AXWIDTH, capthick=AXWIDTH, capsize=0)
@@ -723,17 +738,17 @@ def plot_figure_performance(**pdata):
 #        mp.error(ax=ax, x=[[xx] for xx in x_vals], y=[[yy] for yy in y_avgs], yerr=[[[errlow[kk]], [errhigh[kk]]] for kk in range(len(x_vals))],
 #                 edgecolor=eclist, facecolor=fclist, plotprops=errorprops, **pprops)
         
-#        # plot data points
-#
-#        pprops['facecolor'] = [None for _c1 in range(len(x_del[k]))]
-#        pprops['edgecolor'] = eclist
-#        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1)
-#        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
-#
-#        pprops['facecolor'] = fclist
-#        sprops = dict(lw=0, s=2., marker='o', alpha=1)
-#        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+        # plot data points
+
+        pprops['facecolor'] = ['None' for _c1 in range(len(x_t[k]))]
+        pprops['edgecolor'] = eclist
+        sprops = dict(lw=AXWIDTH, s=2., marker='o', alpha=1.0)
+        temp_x = [[x_vals[_c1] + np.random.normal(0, 0.08) for _c2 in range(len(y_vals[_c1]))] for _c1 in range(len(y_vals))]
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
+
+        pprops['facecolor'] = fclist
+        sprops = dict(lw=0, s=2., marker='o', alpha=1)
+        mp.scatter(ax=ax, x=temp_x, y=y_vals, plotprops=sprops, **pprops)
 
         ax_time[k].text(box_left + (1.04*k+0.5)*(box_right - box_left)/len(test_sets), box_traj['top']+0.02,
                         test_sets[k].split('_')[1].capitalize(),
@@ -746,7 +761,7 @@ def plot_figure_performance(**pdata):
 
     # labels and legend
 
-    labelx = 0.04
+    labelx = 0.03
     ax_traj[0].text(labelx, box_traj['top'] + 0.01, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
     ax_cben[0].text(labelx, box_cben['top'] + 0.02, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
     ax_cdel[0].text(labelx, box_cdel['top'] + 0.02, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
@@ -773,12 +788,12 @@ def plot_figure_performance(**pdata):
     legend_cl = [C_BEN_LT, C_NEU_LT, C_DEL_LT]
     plotprops = DEF_ERRORPROPS.copy()
     plotprops['clip_on'] = False
-    for k in range(len(legend_t)):
-        mp.error(ax=ax_traj[0], x=[[legend_x + legend_d + (k//legend_l * legend_dx)]], y=[[legend_y + (k%legend_l * legend_dy)]],
-                 edgecolor=[legend_c[k]], facecolor=[legend_cl[k]], plotprops=plotprops, **pprops)
-        ax_traj[0].text(legend_x + (k//legend_l * legend_dx), legend_y + (k%legend_l * legend_dy), legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
-
-    legend_x += legend_dx
+#    for k in range(len(legend_t)):
+#        mp.error(ax=ax_traj[0], x=[[legend_x + legend_d + (k//legend_l * legend_dx)]], y=[[legend_y + (k%legend_l * legend_dy)]],
+#                 edgecolor=[legend_c[k]], facecolor=[legend_cl[k]], plotprops=plotprops, **pprops)
+#        ax_traj[0].text(legend_x + (k//legend_l * legend_dx), legend_y + (k%legend_l * legend_dy), legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
+#
+#    legend_x += legend_dx
 
     methods = methods[1:]
     labels  = labels[1:]
@@ -789,7 +804,7 @@ def plot_figure_performance(**pdata):
 
     # Save figure
 
-    plot.savefig('%s/fig2-performance.pdf' % FIG_DIR, **FIGPROPS)
+    plot.savefig('%s/fig-2-performance%s' % (FIG_DIR, EXT), **FIGPROPS)
     plot.close(fig)
 
     print('MPL performance done.')
@@ -1017,7 +1032,7 @@ def plot_figure_hiv_summary(**pdata):
 
     # SAVE FIGURE
     
-    plot.savefig('%s/fig3-hiv-summary.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/fig3-hiv-summary%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('HIV summary done.')
@@ -1190,7 +1205,240 @@ def plot_figure_hiv_summary_alternate(**pdata):
 
     # SAVE FIGURE
     
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.close(fig)
+
+    print('HIV summary done.')
+    
+
+def plot_figure_hiv_summary_single_column(**pdata):
+    """
+    Patterns of selection in HIV-1 across patients, including a) the classification of top beneficial mutations,
+    b) enrichment in CD8+ T cell escapes, and c) enrichment in reversions.
+    """
+
+    # unpack data
+    
+    n_poly    = pdata['n_poly']
+    x_enr     = pdata['x_enr']
+    y_CD8_MPL = pdata['y_CD8_MPL']
+    y_CD8_SL  = pdata['y_CD8_SL']
+    y_rev_MPL = pdata['y_rev_MPL']
+    y_rev_SL  = pdata['y_rev_SL']
+
+    # PLOT FIGURE
+
+    ## set up figure grid
+
+    w       = SINGLE_COLUMN
+    hshrink = 1.05 #0.55 #0.85
+    csize   = 0.3
+    cleft   = (1 - csize)/2
+    csize   = csize/hshrink
+    hsize   = 0.18
+    hspace  = (0.82 - csize - (2 * hsize))/2
+    goldh   = w * hshrink
+    fig     = plot.figure(figsize=(w, goldh))
+    
+    box_top  = 0.93
+    box_circ = dict(left=cleft, right=1 - cleft,   bottom=box_top - csize,                            top=box_top)
+    box_epit = dict(left=0.22, right=0.83,         bottom=box_top - csize - hsize - (0.9*hspace),     top=box_top - csize - (0.9*hspace))
+    box_reve = dict(left=0.22, right=0.83,         bottom=box_top - csize - (2*hsize) - (1.8*hspace), top=box_top - csize - hsize - (1.8*hspace))
+    
+    gs_circ = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_circ)
+    gs_epit = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_epit)
+    gs_reve = gridspec.GridSpec(1, 1, width_ratios=[1.0], height_ratios=[1.0], **box_reve)
+    ax_circ = plot.subplot(gs_circ[0, 0])
+    ax_epit = plot.subplot(gs_epit[0, 0])
+    ax_reve = plot.subplot(gs_reve[0, 0])
+    
+    sublabel_x = 0.05
+
+    ## a -- circle plot
+    
+    arc_colors = ['#FF6E1B', '#FF8F28', '#FFD200', '#FFE552', '#969696', '#cccccc', '#00A3AD', '#1295D8']
+    arc_r      = 1
+    arc_props  = dict(center=[0,0], r=arc_r, width=arc_r, lw=AXWIDTH)
+
+    arc_list = [  ]
+    arc_degs = [90]
+    curr_deg =  90
+    for i in range(len(n_poly)):
+        curr_deg += 360 * n_poly[i]
+        arc_degs.append(curr_deg)
+    
+    for i in range(len(n_poly)):
+        arc_list.append(matplotlib.patches.Wedge(theta1=arc_degs[i], theta2=arc_degs[i+1], fc=arc_colors[i], ec='w', **arc_props))
+    
+    arc_list.append(matplotlib.patches.Wedge(theta1=0, theta2=360, fc='none', ec=BKCOLOR, **arc_props))
+    
+    for arc in arc_list:
+        ax_circ.add_artist(arc)
+
+    dr = 0.15
+    label = ['Env exposed (%.1f%%)'                     % (100*n_poly[0]),
+             '±N-linked\nglycosylation\nmotif (%.1f%%)' % (100*n_poly[1]),
+             'CD8+ T cell\nescape\n(%.1f%%)'            % (100*n_poly[2]),
+             'Flanking\nCD8+ T cell\nepitope (%.1f%%)'  % (100*n_poly[3]),
+             'Other\nsynonymous\n(%.1f%%)'              % (100*n_poly[4]),
+             'Synonymous\nreversion (%.1f%%)'           % (100*n_poly[5]),
+             'Other\nnonsynonymous\nreversion (%.1f%%)' % (100*n_poly[6]),
+             'Other\nnonsynonymous\n(%.1f%%)'           % (100*n_poly[7])]
+    for i in range(len(n_poly)):
+        if i in [-1]:
+            continue
+        else:
+            center  = np.pi * (arc_degs[i] + arc_degs[i+1]) / 360
+            label_x = [(arc_r - dr) * np.cos(center), (arc_r + dr) * np.cos(center)]
+            label_y = [(arc_r - dr) * np.sin(center), (arc_r + dr) * np.sin(center)]
+            off_x   = 0.05 * np.cos(center)
+            off_y   = 0.05 * np.sin(center)
+
+            ddx       = 0.03
+            ddy       = 0.10
+            txtprops  = dict(ha='center', va='center', color=BKCOLOR, family=FONTFAMILY, size=SIZELABEL, rotation=0)
+            plotprops = dict(lw=AXWIDTH/2, ls='-', clip_on=False, zorder=-999)
+            
+            if label_x[0]<0:
+                txtprops['ha'] = 'right'
+            else:
+                txtprops['ha'] = 'left'
+
+            if label_y[0]<-0.7:
+                txtprops['ha'] = 'center'
+                txtprops['va'] = 'top'
+            if label_y[0]>0.80:
+                txtprops['ha'] = 'center'
+                txtprops['va'] = 'bottom'
+
+            # 1% positions
+            if 'Env' in label[i]:
+                off_x += 0.80
+            if 'glycosylation' in label[i]:
+                txtprops['ha'] = 'right'
+                off_x -= 0.05
+                off_y -= 0.22
+                label_x.append(label_x[-1]-dr)
+                label_y.append(label_y[-1])
+            if 'Flanking' in label[i]:
+                off_x -= 0.64
+                off_y += 0.45
+                label_x.append(label_x[-1]-dr)
+                label_y.append(label_y[-1])
+#            if 'Other\nsynonymous' in label[i]:
+#                txtprops['ha'] = 'right'
+#                off_x += 0.08
+#                off_y -= 0.05
+            if 'Other\nsynonymous' in label[i]:
+                txtprops['ha'] = 'right'
+                off_x -= 0.08
+                off_y += 0.10
+                label_x.append(label_x[-1]-dr)
+                label_y.append(label_y[-1])
+            if 'Synonymous\nreversion' in label[i]:
+                txtprops['ha'] = 'left'
+                off_x += 0.02
+                off_y -= 0.00
+            if 'Other\nnonsynonymous\nreversion' in label[i]:
+                txtprops['ha'] = 'left'
+                off_x += 0.00
+                off_y += 0.10
+                label_x.append(label_x[-1]+dr)
+                label_y.append(label_y[-1])
+
+#            if i==0:
+#                label_x[-1] += 0.85 * dr * np.cos(center)
+#                label_y[-1] += 0.85 * dr * np.sin(center)
+
+            if 'Flanking' in label[i]:
+                continue
+
+            ax_circ.text(label_x[-1]+off_x, label_y[-1]+off_y, label[i], **txtprops)
+
+            if i==len(n_poly)-1:
+                pprops = dict(xlim=[-1.1, 1.1], ylim=[-1.1, 1.1], xticks=[], yticks=[], noaxes=True)
+                mp.plot(type='line', ax=ax_circ, x=[label_x], y=[label_y], colors=[BKCOLOR], plotprops=plotprops, **pprops)
+            else:
+                mp.line(ax=ax_circ, x=[label_x], y=[label_y], colors=[BKCOLOR], plotprops=plotprops)
+
+    dy = 0.02/hshrink
+    ax_circ.text(sublabel_x, box_circ['top']+dy, 'a'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    ## b -- enrichment in CD8+ T cell escape mutations
+    
+    lineprops = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
+    fillprops = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
+    
+    pprops = { 'xlim':        [0.01, 0.20],
+               'xticks':      [0.01, 0.10],
+               'xticklabels': [1, 10],
+               'xminorticks': [0.01 * i for i in range(2, 10)] + [0.2],
+               'ylim':        [0, 22],
+               'yticks':      [0, 20],
+               'yminorticks': [5, 10, 15],
+               'ylabel':      'Fold enrichment\nin CD8+ T cell\nescape mutations',
+               'logx':        True,
+               'theme':       'open' }
+    
+    pprops['colors'] = [C_MPL]
+    mp.line(ax=ax_epit, x=[x_enr], y=[y_CD8_MPL], plotprops=lineprops, **pprops)
+    mp.fill(ax=ax_epit, x=[x_enr], y=[y_CD8_MPL], plotprops=fillprops, **pprops)
+
+    pprops['colors'] = [C_SL]
+    mp.line(             ax=ax_epit, x=[x_enr], y=[y_CD8_SL], plotprops=lineprops, **pprops)
+    mp.plot(type='fill', ax=ax_epit, x=[x_enr], y=[y_CD8_SL], plotprops=fillprops, **pprops)
+
+    dy = 0.04/hshrink
+    ax_epit.text(sublabel_x, box_epit['top']+dy, 'b'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    ## c -- enrichment in reversions
+
+    pprops = { 'xlim':        [0.01, 0.20],
+               'xticks':      [0.01, 0.10],
+               'xticklabels': [1, 10],
+               'xminorticks': [0.01 * i for i in range(2, 10)] + [0.2],
+               'ylim':        [0, 40],
+               'yticks':      [0, 40],
+               'yminorticks': [10, 20, 30],
+               'xlabel':      'Fraction of most positively\nselected variants (%)',
+               'ylabel':      'Fold enrichment\nin reversions\noutside epitopes',
+               'logx':        True,
+               'theme':       'open' }
+
+    pprops['colors'] = [C_MPL]
+    mp.line(ax=ax_reve, x=[x_enr], y=[y_rev_MPL], plotprops=lineprops, **pprops)
+    mp.fill(ax=ax_reve, x=[x_enr], y=[y_rev_MPL], plotprops=fillprops, **pprops)
+
+    pprops['colors'] = [C_SL]
+    mp.line(             ax=ax_reve, x=[x_enr], y=[y_rev_SL], plotprops=lineprops, **pprops)
+    mp.plot(type='fill', ax=ax_reve, x=[x_enr], y=[y_rev_SL], plotprops=fillprops, **pprops)
+
+    ax_reve.text(sublabel_x, box_reve['top']+dy, 'c'.lower(), transform=fig.transFigure, **DEF_SUBLABELPROPS)
+
+    # legend
+
+    invt = ax_circ.transData.inverted()
+    xy1  = invt.transform((  0, 0))
+    xy2  = invt.transform((7.5, 9))
+    xy3  = invt.transform((3.0, 9))
+
+    legend_dx1 = xy1[0]-xy2[0]
+    legend_dx2 = xy1[0]-xy3[0]
+    legend_dy  = xy1[1]-xy2[1]
+
+    enr_legend_x = 5.60 #1.75
+    enr_legend_y = 1.90 #1.65
+    enr_legend_t = ['MPL', 'Independent\nmodel']
+    enr_legend_c = [C_MPL, C_SL]
+    for k in range(len(enr_legend_t)):
+        mp.line(ax=ax_circ, x=[[enr_legend_x + legend_dx1, enr_legend_x + legend_dx2]],
+                y=[[enr_legend_y + (1.5 * k * legend_dy), enr_legend_y + (1.5 * k * legend_dy)]],
+                colors=[enr_legend_c[k]], plotprops=dict(lw=2*SIZELINE, ls='-', clip_on=False))
+        ax_circ.text(enr_legend_x, enr_legend_y + (1.5 * k * legend_dy), enr_legend_t[k], ha='left', va='center', **DEF_LABELPROPS)
+
+    # SAVE FIGURE
+    
+    plot.savefig('%s/fig-3-hiv-summary%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('HIV summary done.')
@@ -1526,7 +1774,7 @@ def plot_figure_ch77_kf9(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('%s done.' % fig_title)
@@ -1820,7 +2068,7 @@ def plot_figure_cap256_vrc26(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/fig6-cap256-vrc26.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/fig-6-cap256-vrc26%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('CAP256-VRC26 done.')
@@ -1834,8 +2082,8 @@ def plot_circle(ax, tag, epitope_range, epitope_label, cov_label, label2ddr):
     df_info  = pd.read_csv('%s/analysis/%s-poly.csv' % (HIV_DIR, tag), comment='#', memory_map=True)
     df_index = pd.read_csv('%s/processed/%s-index.csv' % (HIV_DIR, tag), comment='#', memory_map=True)
 
-    cov  = np.loadtxt('%s/HIV/covariance-%s-poly-seq2state.dat' % (MPL_DIR, tag))
-    num  = np.loadtxt('%s/HIV/numerator-%s-poly-seq2state.dat' % (MPL_DIR, tag))
+    cov  = np.loadtxt('%s/covariance-%s-poly-seq2state.dat' % (HIV_MPL_DIR, tag))
+    num  = np.loadtxt('%s/numerator-%s-poly-seq2state.dat' % (HIV_MPL_DIR, tag))
     cinv = np.linalg.inv(cov)
     ds   = cinv / 1e4
 
@@ -2176,8 +2424,8 @@ def plot_supplementary_figure_example_mpl(**pdata):
     x = np.array(x).T
 
     s_true = [s_ben for i in range(n_ben)] + [0 for i in range(n_neu)] + [s_del for i in range(n_del)]
-    s_inf  = np.loadtxt('%s/out/%s_%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1], method))
-    cov    = np.loadtxt('%s/out/covariance-%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1]))
+    s_inf  = np.loadtxt('%s/%s_%s.dat' % (SIM_MPL_DIR, xfile.split('wfsim_')[1], method))
+    cov    = np.loadtxt('%s/covariance-%s.dat' % (SIM_MPL_DIR, xfile.split('wfsim_')[1]))
     ds     = np.linalg.inv(cov) / N
 
     # PLOT FIGURE
@@ -2429,7 +2677,7 @@ def plot_supplementary_figure_example_mpl(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/figs1-%s-mpl.pdf' % (FIG_DIR, name), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/ed-fig-1-%s-mpl%s' % (FIG_DIR, name, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('MPL supplementary example done.')
@@ -2495,7 +2743,8 @@ def plot_supplementary_figure_performance(**pdata):
     methods   = ['MPL', 'FIT', 'LLS', 'CLEAR', 'EandR', 'ApproxWF', 'WFABC',  'IM']
     labels    = ['MPL',   '1',   '2',     '3',     '4',        '5',     '6',   '7']
     colorlist = sns.husl_palette(len(methods)-1)
-    colorbg   = [c + tuple([0.2]) for c in colorlist]
+#    colorbg   = [c + [0.2] for c in colorlist]  # Code Ocean
+    colorbg   = [c + tuple([0.2]) for c in colorlist]  # GitHub
     
     lineprops     = { 'lw': SIZELINE*1.2, 'linestyle': '-', 'alpha': 1.0, 'drawstyle': 'steps-mid' }
     fillprops     = { 'lw': 0, 'alpha': 0.2, 'interpolate': True, 'step': 'mid' }
@@ -2696,7 +2945,7 @@ def plot_supplementary_figure_performance(**pdata):
 
     # Save figure
 
-    plot.savefig('%s/figs2-performance.pdf' % FIG_DIR, **FIGPROPS)
+    plot.savefig('%s/ed-fig-2-performance%s' % (FIG_DIR, EXT), **FIGPROPS)
     plot.close(fig)
 
     print('Performance comparison done.')
@@ -2796,7 +3045,7 @@ def plot_supplementary_figure_absolute_delta_s(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta s histogram done.')
@@ -3018,7 +3267,7 @@ def plot_supplementary_figure_delta_s_distance(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta s distance distribution done.')
@@ -3137,7 +3386,8 @@ def plot_supplementary_figure_delta_s_icov_distance(**pdata):
     group_icov = []
     
     for i in range(len(edges)-1):
-        group_icov.append(np.fabs(np.loadtxt('%s/binData_%d.txt' % (MLB_DIR, i+1), delimiter=',')))
+#        group_icov.append(np.fabs(np.loadtxt('%s/binData_%d.txt' % (MLB_DIR, i+1), delimiter=',')))  # Code Ocean
+        group_icov.append(np.fabs(np.loadtxt('%s/CatD/binData_%d.txt' % (MLB_DIR, i+1), delimiter=',')))  # GitHub
     
     icov_max = 100
     n_bins   = 30
@@ -3243,7 +3493,7 @@ def plot_supplementary_figure_delta_s_icov_distance(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta s / integrated covariance distance distribution done.')
@@ -3469,7 +3719,7 @@ def plot_figure_delta_s_hive(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('%s done.' % fig_title)
@@ -3694,7 +3944,7 @@ def plot_supplementary_figure_delta_s_hive(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Hive plots done.')
@@ -3810,7 +4060,7 @@ def plot_supplementary_figure_max_dx(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('Delta x distribution done.')
@@ -4025,7 +4275,7 @@ def plot_supplementary_figure_epitope(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/%s.pdf' % (FIG_DIR, fig_title), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/%s%s' % (FIG_DIR, fig_title, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('%s done.' % fig_title)
@@ -4046,7 +4296,7 @@ def plot_supplementary_figure_cap256_recombination(**pdata):
     
     df_index = pd.read_csv('%s/processed/%s-SU-%s-index.csv' % (HIV_DIR, patient, region), comment='#', memory_map=True)
     df_poly  = pd.read_csv('%s/analysis/%s-poly.csv' % (HIV_DIR, tag), comment='#', memory_map=True)
-    seqs     = np.loadtxt('%s/HIV/%s-poly-seq2state.dat' % (MPL_DIR, tag), dtype='int')
+    seqs     = np.loadtxt('%s/%s-poly-seq2state.dat' % (HIV_MPL_DIR, tag), dtype='int')
     times    = np.unique(seqs.T[0])
     
     c_vals   = [C_DEL, C_NEU]
@@ -4154,7 +4404,7 @@ def plot_supplementary_figure_cap256_recombination(**pdata):
     ax_hist[-1].text(   0, -4, '6225', **tprops)
     ax_hist[-1].text(2645, -4, '8794', **tprops)
 
-    plot.savefig('%s/figs10-cap256-recombination.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/sup-fig-2-cap256-recombination%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('CAP256 recombination done.')
@@ -4390,7 +4640,7 @@ def plot_supplementary_figure_s_conditions(**pdata):
             
     # Save data
 
-    plot.savefig('%s/figs11-s-conditions.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/ed-fig-10-s-conditions%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('\nSelection coefficient comparison done.')
@@ -4431,8 +4681,8 @@ def plot_supplementary_figure_varying_N(**pdata):
     x = np.array(x).T
 
     s_true = [s_ben for i in range(n_ben)] + [0 for i in range(n_neu)] + [s_del for i in range(n_del)]
-    s_inf  = np.loadtxt('%s/out/%s_%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1], method))
-    cov    = np.loadtxt('%s/out/covariance-%s.dat' % (MPL_DIR, xfile.split('wfsim_')[1]))
+    s_inf  = np.loadtxt('%s/%s_%s.dat' % (SIM_MPL_DIR, xfile.split('wfsim_')[1], method))
+    cov    = np.loadtxt('%s/covariance-%s.dat' % (SIM_MPL_DIR, xfile.split('wfsim_')[1]))
     ds     = np.linalg.inv(cov) / N
 
     # PLOT FIGURE
@@ -4685,7 +4935,7 @@ def plot_supplementary_figure_varying_N(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/revision/varying-N.pdf' % FIG_DIR, dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/revision/varying-N%s' % (FIG_DIR, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('MPL supplementary example (varying N) done.')
@@ -4988,7 +5238,7 @@ def plot_supplementary_figure_varying_s(**pdata):
 
     # SAVE FIGURE
 
-    plot.savefig('%s/revision/varying-s-%s.pdf' % (FIG_DIR, name), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
+    plot.savefig('%s/revision/varying-s-%s%s' % (FIG_DIR, name, EXT), dpi = 1000, facecolor = fig.get_facecolor(), edgecolor=None, **FIGPROPS)
     plot.close(fig)
 
     print('MPL supplementary example (varying s) done.')
