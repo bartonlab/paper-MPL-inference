@@ -12,7 +12,7 @@ Muhammad S. Sohail<sup>1,</sup>\*, Raymond H. Y. Louie<sup>1-4,</sup>\*, Matthew
 <sup>5</sup> Department of Chemical and Biological Engineering, Hong Kong University of Science and Technology  
 <sup>6</sup> Department of Physics and Astronomy, University of California, Riverside  
 \* Equal contributions  
-<sup>#</sup> correspondence to [m.mckay@ust.hk](mailto:m.mckay@ust.hk) and [john.barton@ucr.edu](mailto:john.barton@ucr.edu)  
+<sup>#</sup> correspondence to [m.mckay@ust.hk](mailto:m.mckay@ust.hk) and [jpbarton@pitt.edu](mailto:jpbarton@pitt.edu)  
 
 # Contents
 
